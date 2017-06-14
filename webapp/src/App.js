@@ -18,9 +18,6 @@ export default class App extends Component {
             <MuiThemeProvider>
                 <div>
                     <div className="card">
-                        <AppBar title="Welcome to dg.fy" showMenuIconButton={false} />
-                    </div>
-                    <div className="card">
                         <Card>
                             <CardText>
                                 <SongSearch />
