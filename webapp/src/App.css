@@ -1,0 +1,9 @@
+img.album-cover {
+	width: 32px;
+	height: 32px;
+	display: inline-block;
+}
+
+div.card {
+    margin: 12px;
+}

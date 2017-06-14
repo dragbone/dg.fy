@@ -1,0 +1,2 @@
+include ':app', ':spotify-auth-1.0.0', ':spotify-player-2.20b'
+include ':server'

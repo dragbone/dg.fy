@@ -1,0 +1,25 @@
+apply plugin: 'java'
+apply plugin: 'kotlin'
+apply plugin: 'application'
+
+mainClassName = 'com.dragbone.dg_fy.server.ServerKt'
+jar {
+    manifest {
+        attributes 'Main-Class': 'com.dragbone.dg_fy.server.ServerKt'
+    }
+    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+}
+
+dependencies {
+    compile fileTree(dir: 'libs', include: ['*.jar'])
+    compile "com.sparkjava:spark-kotlin:1.0.0-alpha"
+    compile group: 'org.slf4j', name: 'slf4j-simple', version: '1.6.2'
+    compile "com.fasterxml.jackson.module:jackson-module-kotlin:2.8.7"
+    compile 'com.squareup.okhttp3:okhttp:3.8.0'
+    testCompile 'junit:junit:4.12'
+}
+sourceSets {
+    test.kotlin.srcDirs += 'src/test'
+}
+sourceCompatibility = "1.8"
+targetCompatibility = "1.8"
