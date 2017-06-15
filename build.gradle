@@ -4,15 +4,19 @@ buildscript {
     ext.kotlin_version = '1.1.2-4'
     repositories {
         jcenter()
+        maven {
+            url "https://plugins.gradle.org/m2/"
+        }
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:2.3.3'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
-
+        classpath "com.moowork.gradle:gradle-node-plugin:1.2.0"
         // NOTE: Do not place your application dependencies here; they belong
         // in the individual module build.gradle files
     }
 }
+apply plugin: "com.moowork.node"
 
 allprojects {
     repositories {
@@ -25,4 +29,31 @@ allprojects {
 
 task clean(type: Delete) {
     delete rootProject.buildDir
+}
+
+task deployServer(type: Copy, dependsOn: ':server:jar')  {
+    from 'server/build/libs/server.jar'
+    into 'deploy/'
+}
+
+task buildWebapp(type: NpmTask) {
+    workingDir = file('webapp')
+    args = ['run', 'build']
+}
+
+task deployWebapp(type: Copy, dependsOn: 'buildWebapp')  {
+    from 'webapp/build'
+    into 'deploy'
+}
+
+task deployRunners(type: Copy){
+    from 'run_server.bat'
+    from 'run_web.bat'
+    into 'deploy'
+}
+
+task deploy(dependsOn: ['deployServer', 'deployWebapp', 'deployRunners']){
+    doLast{
+
+    }
 }
