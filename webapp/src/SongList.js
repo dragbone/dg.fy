@@ -26,7 +26,7 @@ export default class SongList extends Component {
     render() {
         return (
             <List>
-                {this.state.items.map(item => <Track key={item.trackId + item.artist} state={item} />)}
+                {this.state.items.map(item => <Track key={item.trackId + item.artist + item.numVotes} state={item} />)}
             </List>
         );
     }
