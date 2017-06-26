@@ -1,12 +1,15 @@
 package com.dragbone.dg_fy.server
 
+import com.dragbone.dg_fy.lib.AppCommand
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import spark.kotlin.*
+import java.net.URLEncoder
 
 fun main(args: Array<String>) {
-    if(args.size != 2){
-        println("Start server with 'java -jar server.jar <clientId> <clientSecret>'")
+    if (args.size != 3) {
+        println("Start server with 'java -jar server.jar <clientId> <clientSecret> <password>'")
     }
+    val password = args[2]
     val http: Http = ignite()
     val spotifyClient = SpotifyClient(args[0], args[1])
     val playlistManager = PlaylistManager(spotifyClient)
@@ -14,18 +17,38 @@ fun main(args: Array<String>) {
     http.enableCORS("*", "*", "*")
 
     http.get("/api/search/:q") {
-        println("Searching for: ${params("q")}")
-        spotifyClient.search(params("q"))
+        val searchRaw = params("q")
+        val search = URLEncoder.encode(searchRaw, "UTF-8")
+        println("Searching for: $search")
+        spotifyClient.search(search)
     }
 
+    val commandQueue = mutableListOf<AppCommand>()
     http.get("/api/progress/:progressS") {
         val progress = params("progressS").toInt()
         playlistManager.progress = progress
-        progress
+        if (commandQueue.any()) {
+            commandQueue.removeAt(0)
+        } else {
+            AppCommand.Nop
+        }
     }
 
     http.get("/api/queue") {
         playlistManager.getPlaylist(request.ip()).json()
+    }
+
+    http.get("/api/skip") {
+        if (request.queryParams("password") != password) return@get false
+        commandQueue.add(AppCommand.Skip)
+    }
+    http.get("/api/pause") {
+        if (request.queryParams("password") != password) return@get false
+        commandQueue.add(AppCommand.Pause)
+    }
+    http.get("/api/play") {
+        if (request.queryParams("password") != password) return@get false
+        commandQueue.add(AppCommand.Play)
     }
 
     http.get("/api/queue/next") {

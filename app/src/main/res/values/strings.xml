@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">Festerify</string>
+    <string name="server_address">server_address</string>
 </resources>

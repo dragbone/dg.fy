@@ -8,7 +8,7 @@ import okhttp3.Request
 import java.util.*
 import kotlin.concurrent.scheduleAtFixedRate
 
-class SpotifyClient(val clientId:String, val clientSecret:String) : ISpotifyClient {
+class SpotifyClient(val clientId: String, val clientSecret: String) : ISpotifyClient {
     val httpClient = OkHttpClient()
 
     var token: String? = null
@@ -32,7 +32,7 @@ class SpotifyClient(val clientId:String, val clientSecret:String) : ISpotifyClie
     }
 
     override fun search(text: String): String {
-        val searchResult = request("search?type=track&q=$text")
+        val searchResult = request("search?q=$text&type=track&market=CH")
         return mapper.writeValueAsString(searchResult)
     }
 
@@ -65,7 +65,7 @@ class SpotifyClient(val clientId:String, val clientSecret:String) : ISpotifyClie
         val json = mapper.readTree(jsonString)
         if (json.has("error")) {
             println("error: " + json["error"].toString())
-            if(json["error"]["status"].asInt() == 401) {
+            if (json["error"]["status"].asInt() == 401) {
                 println("clearing token...")
                 token = null
                 if (tryAgain) {
