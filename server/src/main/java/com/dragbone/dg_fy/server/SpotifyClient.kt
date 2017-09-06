@@ -61,6 +61,7 @@ class SpotifyClient(val clientId: String, val clientSecret: String) : ISpotifyCl
                 .addHeader("Accept", "application/json")
                 .addHeader("Authorization", "Bearer $token")
                 .build()
+        println("Request: $request")
         val jsonString = httpClient.newCall(request).execute().body()!!.string()
         val json = mapper.readTree(jsonString)
         if (json.has("error")) {
