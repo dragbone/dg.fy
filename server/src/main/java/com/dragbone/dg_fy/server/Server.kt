@@ -60,9 +60,18 @@ fun main(args: Array<String>) {
         track.json()
     }
 
+    http.get("/api/queue/reset/:trackId") {
+        val track = playlistManager.reset(params("trackId"), request.ip())
+        track?.json() ?: ""
+    }
+
     http.get("/api/queue/remove/:trackId") {
         val track = playlistManager.remove(params("trackId"), request.ip())
         track?.json() ?: ""
+    }
+
+    http.get("/api/hello") {
+        "Hello World"
     }
 }
 

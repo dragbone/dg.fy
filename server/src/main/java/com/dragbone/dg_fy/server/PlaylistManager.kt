@@ -23,15 +23,17 @@ class PlaylistManager(val spotifyClient: ISpotifyClient) {
         var imageUrl: String? = null
         var lengthS: Int? = null
         val userVotes = mutableSetOf<String>()
+        val userDownVotes = mutableSetOf<String>()
     }
 
-    class UserTrack(track: Track, val userVote: Boolean) : Track(track.trackId) {
+    class UserTrack(track: Track, val userVote: Boolean, val userDownVote: Boolean) : Track(track.trackId) {
         init {
             numVotes = track.numVotes
             artist = track.artist
             song = track.song
             imageUrl = track.imageUrl
             userVotes.addAll(track.userVotes)
+            userDownVotes.addAll(track.userDownVotes)
         }
     }
 
@@ -40,7 +42,7 @@ class PlaylistManager(val spotifyClient: ISpotifyClient) {
 
     fun getPlaylist(user: String): Playlist {
         val list = playlist.values.sortedWith(comparator).map {
-            PlaylistManager.UserTrack(it, it.userVotes.contains(user))
+            PlaylistManager.UserTrack(it, it.userVotes.contains(user), it.userDownVotes.contains(user))
         }
         return Playlist(list, PlayingTrack(currentlyPlaying, progress))
     }
@@ -49,6 +51,7 @@ class PlaylistManager(val spotifyClient: ISpotifyClient) {
 
     fun add(trackId: String, user: String): UserTrack {
         println("add: $trackId, user: $user")
+        reset(trackId, user)
         val track = playlist.getOrPut(trackId) { Track(trackId) }
         if (!track.userVotes.contains(user)) {
             track.numVotes += 1
@@ -57,17 +60,32 @@ class PlaylistManager(val spotifyClient: ISpotifyClient) {
         if (track.artist == null) {
             updateTrackData(track)
         }
-        return UserTrack(track, true)
+        return UserTrack(track, true, false)
     }
 
     fun remove(trackId: String, user: String): UserTrack? {
         println("remove: $trackId, user: $user")
+        reset(trackId, user)
+        val track = playlist[trackId] ?: return null
+        if (!track.userDownVotes.contains(user)) {
+            track.numVotes -= 1
+            track.userDownVotes.add(user)
+        }
+        return UserTrack(track, false, true)
+    }
+
+    fun reset(trackId: String, user: String): UserTrack? {
+        println("reset: $trackId, user: $user")
         val track = playlist[trackId] ?: return null
         if (track.userVotes.contains(user)) {
             track.numVotes -= 1
             track.userVotes.remove(user)
         }
-        return UserTrack(track, false)
+        if (track.userDownVotes.contains(user)) {
+            track.numVotes += 1
+            track.userDownVotes.remove(user)
+        }
+        return UserTrack(track, false, false)
     }
 
     var currentlyPlaying: Track? = null
