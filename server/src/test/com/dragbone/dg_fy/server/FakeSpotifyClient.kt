@@ -1,6 +1,10 @@
 package com.dragbone.dg_fy.server
 
-class FakeSpotifyClient :ISpotifyClient{
+class FakeSpotifyClient : ISpotifyClient {
+    override fun getRecommendedTrackIds(trackIds: List<String>): List<String> {
+        return emptyList()
+    }
+
     override fun loadTrackData(track: PlaylistManager.Track) {
     }
 

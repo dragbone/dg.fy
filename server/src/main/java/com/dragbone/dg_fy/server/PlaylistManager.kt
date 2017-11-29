@@ -47,10 +47,10 @@ class PlaylistManager(val spotifyClient: ISpotifyClient) {
 
     private val playlist = mutableMapOf<String, Track>()
 
-    fun add(trackId: String, user: String): UserTrack {
+    fun add(trackId: String, user: String?): UserTrack {
         println("add: $trackId, user: $user")
         val track = playlist.getOrPut(trackId) { Track(trackId) }
-        if (!track.userVotes.contains(user)) {
+        if (user != null && !track.userVotes.contains(user)) {
             track.numVotes += 1
             track.userVotes.add(user)
         }
@@ -71,17 +71,44 @@ class PlaylistManager(val spotifyClient: ISpotifyClient) {
     }
 
     var currentlyPlaying: Track? = null
+    val playedTracks = mutableListOf<Track>()
     fun dequeue(): String {
-        val highestTrack = playlist.maxBy { it.value.numVotes }?.apply {
+        val highestTrack = playlist.entries.maxBy { it.value.numVotes }?.apply {
             playlist.remove(key)
+            playedTracks.add(value)
         }
+
+        if (playlist.size < 3) {
+            refillPlaylist()
+        }
+
         currentlyPlaying = highestTrack?.value
-        val nextTrackId = highestTrack?.key ?: fallbackTrackId
+        val nextTrackId = highestTrack?.key ?: getFallbackTrackId()
         println("dequeue: $nextTrackId")
         return nextTrackId
     }
 
     fun updateTrackData(track: Track) {
         spotifyClient.loadTrackData(track)
+    }
+
+    private fun refillPlaylist() {
+        val trackIds = selectTracks().map { it.trackId }
+        val recommendedTrackIds = spotifyClient.getRecommendedTrackIds(trackIds)
+        recommendedTrackIds.forEach { add(it, null) }
+    }
+
+    private fun selectTracks(): List<Track> {
+        val weightedTracks = mutableListOf<Track>()
+        playedTracks
+                .filter { it.numVotes > 0 }
+                .takeLast(100)
+                .forEach { track -> track.userVotes.forEach { weightedTracks.add(track) } }
+        Collections.shuffle(weightedTracks)
+        return weightedTracks.take(5)
+    }
+
+    fun getFallbackTrackId(): String {
+        return fallbackTrackId
     }
 }
