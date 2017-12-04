@@ -106,7 +106,7 @@ class PlaylistManager(val spotifyClient: ISpotifyClient) {
     private fun refillPlaylist() {
         val trackIds = selectTracks().map { it.trackId }
         val recommendedTrackIds = spotifyClient.getRecommendedTrackIds(trackIds)
-        recommendedTrackIds.forEach { add(it, null) }
+        recommendedTrackIds.forEach { add(it, null, VoteTypes.NONE) }
     }
 
     private fun selectTracks(): List<Track> {
