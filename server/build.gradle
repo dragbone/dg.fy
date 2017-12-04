@@ -11,16 +11,12 @@ jar {
 }
 
 dependencies {
-    compile fileTree(include: ['*.jar'], dir: 'libs')
-
     compile project(":lib")
-
     compile 'com.sparkjava:spark-kotlin:1.0.0-alpha'
     compile 'org.slf4j:slf4j-simple:1.6.2'
     compile 'com.fasterxml.jackson.module:jackson-module-kotlin:2.8.7'
     compile 'com.squareup.okhttp3:okhttp:3.8.0'
     testCompile 'junit:junit:4.12'
-    compile project(':lib')
 }
 
 sourceSets {

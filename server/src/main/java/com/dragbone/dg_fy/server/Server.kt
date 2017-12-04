@@ -14,6 +14,9 @@ fun main(args: Array<String>) {
     val spotifyClient = SpotifyClient(args[0], args[1])
     val playlistManager = PlaylistManager(spotifyClient)
 
+
+    val config = mutableMapOf(Configs.Vote to true)
+
     http.enableCORS("*", "*", "*")
 
     http.get("/api/search/:q") {
@@ -38,6 +41,13 @@ fun main(args: Array<String>) {
         playlistManager.getPlaylist(request.ip()).json()
     }
 
+    http.get("/api/config/:param/:value") {
+        if (request.queryParams("password") != password) return@get false
+        val param = Configs.valueOf(params("param").capitalize())
+        val value = params("value").toBoolean()
+        config.put(param, value)
+        "$param=$value"
+    }
     http.get("/api/skip") {
         if (request.queryParams("password") != password) return@get false
         commandQueue.add(AppCommand.Skip)
@@ -55,7 +65,8 @@ fun main(args: Array<String>) {
         playlistManager.dequeue()
     }
 
-    http.get("/api/queue/add/:trackId") {
+    http.get("/api/queue/add/:trackId") {      
+        if (!config[Configs.Vote]!!) return@get "Voting is disabled"
         var voteType = VoteTypes.NONE
         if(request.queryParams("voteType")?.toLowerCase() == "downvote"){
             voteType = VoteTypes.DOWNVOTE

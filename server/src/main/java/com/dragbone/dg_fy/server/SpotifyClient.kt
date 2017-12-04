@@ -36,6 +36,18 @@ class SpotifyClient(val clientId: String, val clientSecret: String) : ISpotifyCl
         return mapper.writeValueAsString(searchResult)
     }
 
+    private val numRecommendations = 3
+    override fun getRecommendedTrackIds(trackIds: List<String>): List<String> {
+        if (trackIds.isEmpty()) return emptyList()
+        val idsString = trackIds.take(5).joinToString(separator = ",")
+        val recommendResult = request("recommendations?market=CH&limit=$numRecommendations&seed_tracks=$idsString")
+        val recommendedTracks = mutableListOf<String>()
+        recommendResult["tracks"].elements().forEach {
+            recommendedTracks.add(it["id"].asText())
+        }
+        return recommendedTracks
+    }
+
     private fun token() {
         println("requesting token")
         val url = "https://accounts.spotify.com/api/token"
@@ -61,6 +73,7 @@ class SpotifyClient(val clientId: String, val clientSecret: String) : ISpotifyCl
                 .addHeader("Accept", "application/json")
                 .addHeader("Authorization", "Bearer $token")
                 .build()
+        println("Request: $request")
         val jsonString = httpClient.newCall(request).execute().body()!!.string()
         val json = mapper.readTree(jsonString)
         if (json.has("error")) {

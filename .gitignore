@@ -11,3 +11,5 @@
 /deploy
 *.bat
 *.sh
+*.log
+*.zip
