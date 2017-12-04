@@ -19,8 +19,16 @@ export default class Track extends Component {
         this.state = props.state;
     }
 
-    vote(command, trackId) {
-        fetch(window.apiUrl + 'queue/' + command + "/" + trackId)
+    addVote(trackId, voteType) {
+        fetch(window.apiUrl + 'queue/add/' + trackId + "?voteType=" + voteType)
+            .then(response => response.json())
+            .then(result => {
+                this.setState(result)
+            });
+    }
+
+    removeVote(trackId) {
+        fetch(window.apiUrl + 'queue/remove/' + trackId)
             .then(response => response.json())
             .then(result => {
                 this.setState(result)
@@ -31,9 +39,9 @@ export default class Track extends Component {
         let iconMenu = null;
         if (!this.state.blockVote) {
             let icon = null;
-            if (this.state.userVote) {
+            if (this.state.voteType === "UPVOTE") {
                 icon = <ActionThumbUp />;
-            } else if (this.state.userDownVote) {
+            } else if (this.state.voteType === "DOWNVOTE") {
                 icon = <ActionThumbDown />;
             } else {
                 icon = <ActionThumbsUpDown />;
@@ -43,9 +51,9 @@ export default class Track extends Component {
                 <IconMenu iconButtonElement={badge}
                     anchorOrigin={{horizontal: 'left', vertical: 'center'}}
                     targetOrigin={{horizontal: 'left', vertical: 'center'}}>
-                    <MenuItem primaryText="Thumb Up" leftIcon={<ActionThumbUp />} onClick={(event) => this.vote.bind(this)("add", this.state.trackId)} />
-                    <MenuItem primaryText="Reset" leftIcon={<ActionThumbsUpDown />} onClick={(event) => this.vote.bind(this)("reset", this.state.trackId)} />
-                    <MenuItem primaryText="Thumb Down" leftIcon={<ActionThumbDown />} onClick={(event) => this.vote.bind(this)("remove", this.state.trackId)} />
+                    <MenuItem primaryText="Thumb Up" leftIcon={<ActionThumbUp />} onClick={(event) => this.addVote.bind(this)(this.state.trackId, "UpVote")} />
+                    <MenuItem primaryText="Reset" leftIcon={<ActionThumbsUpDown />} onClick={(event) => this.removeVote.bind(this)(this.state.trackId)} />
+                    <MenuItem primaryText="Thumb Down" leftIcon={<ActionThumbDown />} onClick={(event) => this.addVote.bind(this)(this.state.trackId, "DownVote")} />
                 </IconMenu>
             )
         }
@@ -58,7 +66,7 @@ export default class Track extends Component {
                 secondaryText={this.state.artist}
                 leftAvatar={<Avatar src={this.state.imageUrl} />}
                 rightIconButton={iconMenu}
-                onClick={(event) => this.vote.bind(this)("add", this.state.trackId)}
+                onClick={(event) => this.addVote.bind(this)(this.state.trackId, "UpVote")}
             />
         );
     }
