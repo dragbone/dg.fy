@@ -2,7 +2,7 @@ package com.dragbone.dg_fy.server
 
 import java.util.*
 
-enum class VoteTypes{
+enum class VoteTypes {
     UPVOTE, DOWNVOTE, NONE
 }
 
@@ -54,14 +54,14 @@ class PlaylistManager(val spotifyClient: ISpotifyClient) {
     fun add(trackId: String, user: String?, voteType: VoteTypes): UserTrack {
         println("add: $trackId, user: $user")
         val track = playlist.getOrPut(trackId) { Track(trackId) }
-        if(user != null) {
-          remove(trackId, user)
-          track.userVotes.put(user, voteType)
-          if (voteType == VoteTypes.UPVOTE) {
-              track.numVotes += 1
-          } else if(voteType == VoteTypes.DOWNVOTE){
-              track.numVotes -= 1
-          }
+        if (user != null) {
+            remove(trackId, user)
+            track.userVotes.put(user, voteType)
+            if (voteType == VoteTypes.UPVOTE) {
+                track.numVotes += 1
+            } else if (voteType == VoteTypes.DOWNVOTE) {
+                track.numVotes -= 1
+            }
         }
         if (track.artist == null) {
             updateTrackData(track)
@@ -75,7 +75,7 @@ class PlaylistManager(val spotifyClient: ISpotifyClient) {
         val voteType = track.userVotes.remove(user)
         if (voteType == VoteTypes.UPVOTE) {
             track.numVotes -= 1
-        } else if(voteType == VoteTypes.DOWNVOTE){
+        } else if (voteType == VoteTypes.DOWNVOTE) {
             track.numVotes += 1
         }
         return UserTrack(track, VoteTypes.NONE)
@@ -89,7 +89,7 @@ class PlaylistManager(val spotifyClient: ISpotifyClient) {
             playedTracks.add(value)
         }
 
-        if (playlist.size < 3) {
+        if (playlist.count { it.value.numVotes >= 0 } < 3) {
             refillPlaylist()
         }
 
