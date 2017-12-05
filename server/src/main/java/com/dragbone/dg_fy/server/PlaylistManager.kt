@@ -2,6 +2,10 @@ package com.dragbone.dg_fy.server
 
 import java.util.*
 
+enum class VoteTypes{
+    UPVOTE, DOWNVOTE, NONE
+}
+
 class PlaylistManager(val spotifyClient: ISpotifyClient) {
     companion object {
         val fallbackTrackId = "5TQbdFgOgAMwhAzZwVFBHb"
@@ -22,16 +26,16 @@ class PlaylistManager(val spotifyClient: ISpotifyClient) {
         var song: String? = null
         var imageUrl: String? = null
         var lengthS: Int? = null
-        val userVotes = mutableSetOf<String>()
+        val userVotes = mutableMapOf<String, VoteTypes>()
     }
 
-    class UserTrack(track: Track, val userVote: Boolean) : Track(track.trackId) {
+    class UserTrack(track: Track, val voteType: VoteTypes) : Track(track.trackId) {
         init {
             numVotes = track.numVotes
             artist = track.artist
             song = track.song
             imageUrl = track.imageUrl
-            userVotes.addAll(track.userVotes)
+            userVotes.putAll(track.userVotes)
         }
     }
 
@@ -40,34 +44,41 @@ class PlaylistManager(val spotifyClient: ISpotifyClient) {
 
     fun getPlaylist(user: String): Playlist {
         val list = playlist.values.sortedWith(comparator).map {
-            PlaylistManager.UserTrack(it, it.userVotes.contains(user))
+            PlaylistManager.UserTrack(it, it.userVotes.get(user) ?: VoteTypes.NONE)
         }
         return Playlist(list, PlayingTrack(currentlyPlaying, progress))
     }
 
     private val playlist = mutableMapOf<String, Track>()
 
-    fun add(trackId: String, user: String?): UserTrack {
+    fun add(trackId: String, user: String?, voteType: VoteTypes): UserTrack {
         println("add: $trackId, user: $user")
         val track = playlist.getOrPut(trackId) { Track(trackId) }
-        if (user != null && !track.userVotes.contains(user)) {
-            track.numVotes += 1
-            track.userVotes.add(user)
+        if(user != null) {
+          remove(trackId, user)
+          track.userVotes.put(user, voteType)
+          if (voteType == VoteTypes.UPVOTE) {
+              track.numVotes += 1
+          } else if(voteType == VoteTypes.DOWNVOTE){
+              track.numVotes -= 1
+          }
         }
         if (track.artist == null) {
             updateTrackData(track)
         }
-        return UserTrack(track, true)
+        return UserTrack(track, voteType)
     }
 
     fun remove(trackId: String, user: String): UserTrack? {
         println("remove: $trackId, user: $user")
         val track = playlist[trackId] ?: return null
-        if (track.userVotes.contains(user)) {
+        val voteType = track.userVotes.remove(user)
+        if (voteType == VoteTypes.UPVOTE) {
             track.numVotes -= 1
-            track.userVotes.remove(user)
+        } else if(voteType == VoteTypes.DOWNVOTE){
+            track.numVotes += 1
         }
-        return UserTrack(track, false)
+        return UserTrack(track, VoteTypes.NONE)
     }
 
     var currentlyPlaying: Track? = null
@@ -95,7 +106,7 @@ class PlaylistManager(val spotifyClient: ISpotifyClient) {
     private fun refillPlaylist() {
         val trackIds = selectTracks().map { it.trackId }
         val recommendedTrackIds = spotifyClient.getRecommendedTrackIds(trackIds)
-        recommendedTrackIds.forEach { add(it, null) }
+        recommendedTrackIds.forEach { add(it, null, VoteTypes.NONE) }
     }
 
     private fun selectTracks(): List<Track> {

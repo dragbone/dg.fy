@@ -36,7 +36,7 @@ export default class SongSearch extends Component {
     }
 
     onListItemSelected(trackId) {
-        fetch(window.apiUrl + 'queue/add/' + trackId)
+        fetch(window.apiUrl + 'queue/add/' + trackId + '?voteType=UpVote')
             .then(result => {
                 window.songlistCallback();
             });

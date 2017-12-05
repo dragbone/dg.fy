@@ -65,9 +65,15 @@ fun main(args: Array<String>) {
         playlistManager.dequeue()
     }
 
-    http.get("/api/queue/add/:trackId") {
+    http.get("/api/queue/add/:trackId") {      
         if (!config[Configs.Vote]!!) return@get "Voting is disabled"
-        val track = playlistManager.add(params("trackId"), request.ip())
+        var voteType = VoteTypes.NONE
+        if(request.queryParams("voteType")?.toLowerCase() == "downvote"){
+            voteType = VoteTypes.DOWNVOTE
+        } else if(request.queryParams("voteType")?.toLowerCase() == "upvote"){
+            voteType = VoteTypes.UPVOTE
+        }
+        val track = playlistManager.add(params("trackId"), request.ip(), voteType)
         track.json()
     }
 

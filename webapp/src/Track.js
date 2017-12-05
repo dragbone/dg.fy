@@ -2,8 +2,11 @@ import React, { Component } from 'react';
 import { ListItem } from 'material-ui/List';
 import Avatar from 'material-ui/Avatar';
 import Badge from 'material-ui/Badge';
-import ActionFavorite from 'material-ui/svg-icons/action/favorite';
-import ActionFavoriteBorder from 'material-ui/svg-icons/action/favorite-border';
+import IconMenu from 'material-ui/IconMenu';
+import MenuItem from 'material-ui/MenuItem';
+import ActionThumbsUpDown from 'material-ui/svg-icons/action/thumbs-up-down';
+import ActionThumbUp from 'material-ui/svg-icons/action/thumb-up';
+import ActionThumbDown from 'material-ui/svg-icons/action/thumb-down';
 
 export default class Track extends Component {
     constructor(props) {
@@ -16,40 +19,52 @@ export default class Track extends Component {
         this.state = props.state;
     }
 
-    vote(trackId) {
-        if (!this.state.blockVote) {
-            let command = "";
-            if (this.state.userVote) {
-                command = "remove";
-            } else {
-                command = "add";
-            }
-            fetch(window.apiUrl + 'queue/' + command + "/" + trackId)
-                .then(response => response.json())
-                .then(result => {
-                    this.setState(result)
-                });
-        }
+    addVote(trackId, voteType) {
+        fetch(window.apiUrl + 'queue/add/' + trackId + "?voteType=" + voteType)
+            .then(response => response.json())
+            .then(result => {
+                this.setState(result)
+            });
+    }
+
+    removeVote(trackId) {
+        fetch(window.apiUrl + 'queue/remove/' + trackId)
+            .then(response => response.json())
+            .then(result => {
+                this.setState(result)
+            });
     }
 
     render() {
-        let badge = null;
+        let iconMenu = null;
         if (!this.state.blockVote) {
             let icon = null;
-            if (this.state.userVote) {
-                icon = <ActionFavorite />;
+            if (this.state.voteType === "UPVOTE") {
+                icon = <ActionThumbUp />;
+            } else if (this.state.voteType === "DOWNVOTE") {
+                icon = <ActionThumbDown />;
             } else {
-                icon = <ActionFavoriteBorder />;
+                icon = <ActionThumbsUpDown />;
             }
-            badge = <Badge badgeContent={this.state.numVotes} secondary={true} >{icon}</Badge>;
+            let badge = <Badge badgeContent={this.state.numVotes} secondary={true} onClick={(event) => event.stopPropagation()}>{icon}</Badge>;
+            iconMenu = (
+                <IconMenu iconButtonElement={badge}
+                    anchorOrigin={{horizontal: 'left', vertical: 'center'}}
+                    targetOrigin={{horizontal: 'left', vertical: 'center'}}>
+                    <MenuItem primaryText="Thumb Up" leftIcon={<ActionThumbUp />} onClick={(event) => this.addVote.bind(this)(this.state.trackId, "UpVote")} />
+                    <MenuItem primaryText="Reset" leftIcon={<ActionThumbsUpDown />} onClick={(event) => this.removeVote.bind(this)(this.state.trackId)} />
+                    <MenuItem primaryText="Thumb Down" leftIcon={<ActionThumbDown />} onClick={(event) => this.addVote.bind(this)(this.state.trackId, "DownVote")} />
+                </IconMenu>
+            )
         }
+
         return (
             <ListItem
                 primaryText={this.state.song}
                 secondaryText={this.state.artist}
                 leftAvatar={<Avatar src={this.state.imageUrl} />}
-                rightIcon={badge}
-                onClick={(event) => this.vote.bind(this)(this.state.trackId)}
+                rightIconButton={iconMenu}
+                onClick={(event) => this.addVote.bind(this)(this.state.trackId, "UpVote")}
             />
         );
     }

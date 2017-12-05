@@ -8,8 +8,8 @@ class PlaylistManagerTest {
     fun dequeue() {
         /* Arrange */
         val playlistManager = PlaylistManager(FakeSpotifyClient())
-        playlistManager.add("track1", "user1")
-        playlistManager.add("track2", "user1")
+        playlistManager.add("track1", "user1", VoteTypes.NONE)
+        playlistManager.add("track2", "user1", VoteTypes.NONE)
 
         /* Act & Assert */
         Assert.assertEquals(playlistManager.dequeue(), "track1")
@@ -34,7 +34,7 @@ class PlaylistManagerTest {
         val playlistManager = PlaylistManager(FakeSpotifyClient())
 
         /* Act */
-        playlistManager.add("track1", "user1")
+        playlistManager.add("track1", "user1", VoteTypes.NONE)
 
         /* Assert */
         val playlist = playlistManager.getPlaylist("user1")
@@ -48,7 +48,7 @@ class PlaylistManagerTest {
         val playlistManager = PlaylistManager(FakeSpotifyClient())
 
         /* Act */
-        playlistManager.add("track1", "user1")
+        playlistManager.add("track1", "user1", VoteTypes.NONE)
         playlistManager.remove("track1", "user1")
 
         /* Assert */
