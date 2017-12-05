@@ -46,7 +46,7 @@ export default class Track extends Component {
             } else {
                 icon = <ActionThumbsUpDown />;
             }
-            let badge = <Badge badgeContent={this.state.numVotes} secondary={true} >{icon}</Badge>;
+            let badge = <Badge badgeContent={this.state.numVotes} secondary={true} onClick={(event) => event.stopPropagation()}>{icon}</Badge>;
             iconMenu = (
                 <IconMenu iconButtonElement={badge}
                     anchorOrigin={{horizontal: 'left', vertical: 'center'}}
@@ -57,8 +57,6 @@ export default class Track extends Component {
                 </IconMenu>
             )
         }
-
-
 
         return (
             <ListItem
