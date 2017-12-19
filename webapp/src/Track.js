@@ -37,7 +37,9 @@ export default class Track extends Component {
 
     render() {
         let iconMenu = null;
+        let onClickEvent = null;
         if (!this.state.blockVote) {
+            onClickEvent = (event) => this.addVote.bind(this)(this.state.trackId, "UpVote")
             let icon = null;
             if (this.state.voteType === "UPVOTE") {
                 icon = <ActionThumbUp />;
@@ -64,7 +66,7 @@ export default class Track extends Component {
                 secondaryText={this.state.artist}
                 leftAvatar={<Avatar src={this.state.imageUrl} />}
                 rightIconButton={iconMenu}
-                onClick={(event) => this.addVote.bind(this)(this.state.trackId, "UpVote")}
+                onClick={onClickEvent}
             />
         );
     }

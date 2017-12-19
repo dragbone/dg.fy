@@ -53,6 +53,7 @@ class PlaylistManager(val spotifyClient: ISpotifyClient) {
 
     fun add(trackId: String, user: String?, voteType: VoteTypes): UserTrack {
         println("add: $trackId, user: $user")
+        if(currentlyPlaying?.trackId == trackId) return UserTrack(currentlyPlaying!!,VoteTypes.NONE);
         val track = playlist.getOrPut(trackId) { Track(trackId) }
         if(user != null) {
           remove(trackId, user)
