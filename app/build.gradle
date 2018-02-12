@@ -38,14 +38,14 @@ dependencies {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
 
-    compile project(':spotify-auth-1.0.0')
+    compile 'com.spotify.android:auth:1.0.0-alpha'
     compile project(':spotify-player-2.20b')
     compile project(":lib")
 
-    compile "org.jetbrains.kotlin:kotlin-stdlib-jre7:$kotlin_version"
-    compile 'com.android.support:appcompat-v7:25.3.1'
+    compile "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+    compile 'com.android.support:appcompat-v7:25.1.1'
     compile 'com.android.support.constraint:constraint-layout:1.0.2'
-    compile 'com.android.support:design:25.3.1'
+    compile 'com.android.support:design:25.1.1'
     testCompile 'junit:junit:4.12'
 }
 repositories {
