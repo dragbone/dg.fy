@@ -43,18 +43,17 @@ task buildWebapp(type: NpmTask) {
 
 task deployWebapp(type: Copy, dependsOn: 'buildWebapp') {
     from 'webapp/build'
-    into 'deploy'
+    into 'deploy/webapp/build'
 }
 
 task deployRunners(type: Copy) {
     from 'run_server.bat'
-    from 'run_web.bat'
     into 'deploy'
 }
 
 task deployApk(type: Copy, dependsOn: ':app:assemble'){
     from 'app/build/outputs/apk/'
-    into 'deploy'
+    into 'deploy/androidApp'
 }
 
 task cleanDeploy(type: Delete){

@@ -13,9 +13,10 @@ fun main(args: Array<String>) {
     val http: Http = ignite()
     val spotifyClient = SpotifyClient(args[0], args[1])
     val playlistManager = PlaylistManager(spotifyClient)
-
-
     val config = mutableMapOf(Configs.Vote to true)
+
+    http.port(80)
+    http.staticFiles.externalLocation("webapp/build")
 
     http.enableCORS("*", "*", "*")
 
