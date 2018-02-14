@@ -2,6 +2,7 @@ package com.dragbone.dg_fy
 
 import android.os.AsyncTask
 import android.util.Log
+import android.widget.ImageView
 import android.widget.ProgressBar
 import android.widget.TextView
 import com.dragbone.dg_fy.lib.AppCommand
@@ -12,26 +13,26 @@ import java.net.URL
 import java.util.*
 import kotlin.concurrent.scheduleAtFixedRate
 
-class SpotifyPlaylistPlayer(val player: Player, val textView: TextView, val progressBar: ProgressBar)
+class SpotifyPlaylistPlayer(val player: Player, val textView: TextView, val progressBar: ProgressBar, val imageView: ImageView)
     : Player.NotificationCallback {
     companion object {
         val initialTrack = "5TQbdFgOgAMwhAzZwVFBHb"
     }
 
     val timer = Timer("dg.fy")
-    var command = AppCommand.Play
+    var command = AppCommand.Nop
 
     init {
-        timer.scheduleAtFixedRate(0, 500) {
+        timer.scheduleAtFixedRate(0, 200) {
             try {
                 when (command) {
                     AppCommand.Play -> if (player.playbackState == null) {
                         PlayNextSongTask().execute(player)
                     } else if (!player.playbackState.isPlaying) {
-                        player.resume(null)
+                        player.resume(LoggingOperationCallback("Resume"))
                     }
                     AppCommand.Pause -> if (player.playbackState?.isPlaying ?: false) {
-                        player.pause(null)
+                        player.pause(LoggingOperationCallback("Pause"))
                     }
                     AppCommand.Skip -> run {
                         command = AppCommand.Play
@@ -42,7 +43,6 @@ class SpotifyPlaylistPlayer(val player: Player, val textView: TextView, val prog
                 val posMS = player.playbackState?.positionMs ?: 0
                 progressBar.progress = (posMS / 1000).toInt()
                 val response = request("progress/" + progressBar.progress)
-                Log.i("Timer", "response: " + response)
                 val newCommand = AppCommand.valueOf(response)
                 if (newCommand != AppCommand.Nop) {
                     command = newCommand
@@ -67,6 +67,8 @@ class SpotifyPlaylistPlayer(val player: Player, val textView: TextView, val prog
                 val track = player.metadata.currentTrack ?: return
                 textView.text = "${track.artistName} - ${track.name}"
                 progressBar.max = (track.durationMs / 1000).toInt()
+                Log.w("ImageUri", track.albumCoverWebUrl)
+                ImageDownloadTask(imageView, URL(track.albumCoverWebUrl)).execute()
             }
         }
     }
@@ -91,7 +93,7 @@ class SpotifyPlaylistPlayer(val player: Player, val textView: TextView, val prog
                     initialTrack
                 }
                 Log.d("PlayNextSongTask", "playing next track: $track")
-                player.playUri(null, "spotify:track:$track", 0, 0)
+                player.playUri(LoggingOperationCallback("PlayUri"), "spotify:track:$track", 0, 0)
             } catch (e: Exception) {
                 Log.e("PlayNextSongTask", e.toString())
             }
@@ -104,6 +106,6 @@ class SpotifyPlaylistPlayer(val player: Player, val textView: TextView, val prog
     }
 
     fun init() {
-        player.playUri(null, "spotify:track:$initialTrack", 0, 0)
+        player.playUri(LoggingOperationCallback("PlayUri"), "spotify:track:$initialTrack", 0, 0)
     }
 }

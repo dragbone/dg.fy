@@ -6,6 +6,7 @@ import android.support.design.widget.FloatingActionButton;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
@@ -52,11 +53,11 @@ public class MainActivity extends Activity implements ConnectionStateCallback {
         playButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(mPlayer.getPlaybackState().isPlaying){
-                    mPlayer.pause(null);
+                if (mPlayer.getPlaybackState().isPlaying) {
+                    mPlayer.pause(new LoggingOperationCallback("Pause"));
                     playButton.setImageResource(android.R.drawable.ic_media_play);
-                }else {
-                    mPlayer.resume(null);
+                } else {
+                    mPlayer.resume(new LoggingOperationCallback("Resume"));
                     playButton.setImageResource(android.R.drawable.ic_media_pause);
                 }
             }
@@ -79,7 +80,10 @@ public class MainActivity extends Activity implements ConnectionStateCallback {
                     public void onInitialized(SpotifyPlayer spotifyPlayer) {
                         mPlayer = spotifyPlayer;
                         mPlayer.addConnectionStateCallback(MainActivity.this);
-                        playlistPlayer = new SpotifyPlaylistPlayer(mPlayer, (TextView) findViewById(R.id.tview), (ProgressBar) findViewById(R.id.progressBar));
+                        playlistPlayer = new SpotifyPlaylistPlayer(mPlayer,
+                                (TextView) findViewById(R.id.tview),
+                                (ProgressBar) findViewById(R.id.progressBar),
+                                (ImageView) findViewById(R.id.imageView));
                         mPlayer.addNotificationCallback(playlistPlayer);
                     }
 
@@ -88,6 +92,8 @@ public class MainActivity extends Activity implements ConnectionStateCallback {
                         Log.e("MainActivity", "Could not initialize player: " + throwable.getMessage());
                     }
                 });
+            } else {
+                Log.e("SpotifyLogin", "" + resultCode);
             }
         }
     }
