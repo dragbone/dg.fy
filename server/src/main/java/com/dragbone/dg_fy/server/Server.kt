@@ -2,6 +2,7 @@ package com.dragbone.dg_fy.server
 
 import com.dragbone.dg_fy.lib.AppCommand
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import spark.Request
 import spark.kotlin.*
 import java.net.URLEncoder
 
@@ -9,7 +10,7 @@ fun main(args: Array<String>) {
     if (args.size != 3) {
         println("Start server with 'java -jar server.jar <clientId> <clientSecret> <password>'")
     }
-    val password = args[2]
+    val adminPassword = args[2]
     val http: Http = ignite()
     val spotifyClient = SpotifyClient(args[0], args[1])
     val playlistManager = PlaylistManager(spotifyClient)
@@ -19,6 +20,17 @@ fun main(args: Array<String>) {
     http.staticFiles.externalLocation("webapp/build")
 
     http.enableCORS("*", "*", "*")
+
+    http.get("/api/login") {
+        val password = request.queryParams("password")
+        println("Login: $password")
+        response.cookie("password", password, 60 * 60 * 24 * 30 * 6, true, true)
+        checkPassword(request, adminPassword)
+    }
+
+    http.get("/api/isLoggedIn") {
+        checkPassword(request, adminPassword)
+    }
 
     http.get("/api/search/:q") {
         val searchRaw = params("q")
@@ -43,22 +55,22 @@ fun main(args: Array<String>) {
     }
 
     http.get("/api/config/:param/:value") {
-        if (request.queryParams("password") != password) return@get false
+        if (!checkPassword(request, adminPassword)) return@get false
         val param = Configs.valueOf(params("param").capitalize())
         val value = params("value").toBoolean()
         config.put(param, value)
         "$param=$value"
     }
     http.get("/api/skip") {
-        if (request.queryParams("password") != password) return@get false
+        if (!checkPassword(request, adminPassword)) return@get false
         commandQueue.add(AppCommand.Skip)
     }
     http.get("/api/pause") {
-        if (request.queryParams("password") != password) return@get false
+        if (!checkPassword(request, adminPassword)) return@get false
         commandQueue.add(AppCommand.Pause)
     }
     http.get("/api/play") {
-        if (request.queryParams("password") != password) return@get false
+        if (!checkPassword(request, adminPassword)) return@get false
         commandQueue.add(AppCommand.Play)
     }
 
@@ -66,12 +78,12 @@ fun main(args: Array<String>) {
         playlistManager.dequeue()
     }
 
-    http.get("/api/queue/add/:trackId") {      
+    http.get("/api/queue/add/:trackId") {
         if (!config[Configs.Vote]!!) return@get "Voting is disabled"
         var voteType = VoteTypes.NONE
-        if(request.queryParams("voteType")?.toLowerCase() == "downvote"){
+        if (request.queryParams("voteType")?.toLowerCase() == "downvote") {
             voteType = VoteTypes.DOWNVOTE
-        } else if(request.queryParams("voteType")?.toLowerCase() == "upvote"){
+        } else if (request.queryParams("voteType")?.toLowerCase() == "upvote") {
             voteType = VoteTypes.UPVOTE
         }
         val track = playlistManager.add(params("trackId"), request.ip(), voteType)
@@ -82,6 +94,11 @@ fun main(args: Array<String>) {
         val track = playlistManager.remove(params("trackId"), request.ip())
         track?.json() ?: ""
     }
+}
+
+fun checkPassword(request: Request, adminPassword: String): Boolean {
+    val userPassword = request.cookie("password")
+    return adminPassword == userPassword
 }
 
 val mapper = jacksonObjectMapper()

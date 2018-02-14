@@ -3,8 +3,25 @@ import { List, ListItem } from 'material-ui/List';
 import Avatar from 'material-ui/Avatar';
 import TextField from 'material-ui/TextField';
 import FlatButton from 'material-ui/FlatButton';
+import FloatingActionButton from 'material-ui/FloatingActionButton';
+import ContentSkipNext from 'material-ui/svg-icons/av/skip-next';
+import ContentPlay from 'material-ui/svg-icons/av/play-arrow';
+import ContentPause from 'material-ui/svg-icons/av/pause';
 
 export default class SongSearch extends Component {
+    constructor(){
+        super();
+
+        fetch(window.apiUrl + 'isLoggedIn', {credentials: 'include'})
+            .then(response => response.json())
+            .then(result => {
+                if(result === true){
+                    this.setState({ admin: true });
+                }
+            }
+        );
+    }
+
     state = { searchResult: [], timer: null, searchText: "" };
 
     inputChanged(event) {
@@ -40,7 +57,16 @@ export default class SongSearch extends Component {
             .then(result => {
                 window.songlistCallback();
             });
+    }
 
+    skip() {
+        fetch(window.apiUrl + 'skip', {credentials: 'include'});
+    }
+    play() {
+        fetch(window.apiUrl + 'play', {credentials: 'include'});
+    }
+    pause() {
+        fetch(window.apiUrl + 'pause', {credentials: 'include'});
     }
 
     clear(event) {
@@ -48,10 +74,28 @@ export default class SongSearch extends Component {
     }
 
     render() {
+        let adminTools = null
+        if(this.state.admin){
+            adminTools = <div>
+                              <FloatingActionButton mini={true} onClick={(event) => this.skip.bind(this)()}>
+                                  <ContentSkipNext />
+                              </FloatingActionButton>
+                              <FloatingActionButton mini={true} onClick={(event) => this.play.bind(this)()}>
+                                  <ContentPlay />
+                              </FloatingActionButton>
+                              <FloatingActionButton mini={true} onClick={(event) => this.pause.bind(this)()}>
+                                  <ContentPause />
+                              </FloatingActionButton>
+                          </div>
+        } else {
+            adminTools = <div />
+        }
+
         return (
             <div>
                 <TextField floatingLabelText="Search Track" onChange={this.inputChanged.bind(this)} ref="searchText" value={this.state.searchText} />
                 <FlatButton label="Clear" secondary={true} onClick={this.clear.bind(this)}/>
+                {adminTools}
                 <List>
                     {this.state.searchResult.slice(0, 5).map((item, index) => <ListItem key={index}
                         primaryText={item.name}
