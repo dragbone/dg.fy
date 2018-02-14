@@ -11,7 +11,7 @@ export default class SongList extends Component {
     componentDidMount() {
         this.loadContent();
         window.songlistCallback = this.loadContent.bind(this);
-        setInterval(this.loadContent.bind(this), 5000);
+        setInterval(this.loadContent.bind(this), 2000);
     }
 
     loadContent() {
