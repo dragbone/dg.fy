@@ -10,7 +10,7 @@ import { Card, CardHeader, CardText } from 'material-ui/Card';
 import injectTapEventPlugin from 'react-tap-event-plugin';
 injectTapEventPlugin();
 
-window.apiUrl = 'http://' + window.location.host + '/api/';
+window.apiUrl = 'http://' + window.location.hostname + '/api/';
 
 export default class App extends Component {
     render() {
