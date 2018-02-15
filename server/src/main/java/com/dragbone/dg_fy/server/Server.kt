@@ -24,8 +24,8 @@ fun main(args: Array<String>) {
     http.get("/api/login") {
         val password = request.queryParams("password")
         println("Login: $password")
-        response.cookie("password", password, 60 * 60 * 24 * 30 * 6, true, true)
-        checkPassword(request, adminPassword)
+        response.cookie("password", password, 60 * 60 * 24 * 30 * 6, false, false)
+        password == adminPassword
     }
 
     http.get("/api/isLoggedIn") {
@@ -122,6 +122,7 @@ fun Http.enableCORS(origin: String, methods: String, headers: String) {
         response.header("Access-Control-Allow-Origin", origin)
         response.header("Access-Control-Request-Method", methods)
         response.header("Access-Control-Allow-Headers", headers)
+        response.header("Access-Control-Allow-Credentials", "true")
         // Note: this may or may not be necessary in your particular application
         response.type("application/json")
     }
