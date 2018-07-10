@@ -16,8 +16,8 @@ fun main(args: Array<String>) {
     val http: Http = ignite()
     val spotifyClient = SpotifyClient(args[0], args[1])
     val playlistManager = PlaylistManager(spotifyClient)
-    val muteService = MuteService()
-    val config = mutableMapOf(Configs.Vote to true)
+    val config = mutableMapOf(Configs.Vote to "true", Configs.MuteDuration to "5")
+    val muteService = MuteService(config)
 
     http.port(80)
     http.staticFiles.externalLocation("webapp/build")
@@ -70,7 +70,8 @@ fun main(args: Array<String>) {
     http.get("/api/config/:param/:value") {
         if (!checkPassword(request, adminPassword)) return@get false
         val param = Configs.valueOf(params("param").capitalize())
-        val value = params("value").toBoolean()
+        val value = params("value")
+        if(value == "favicon.png") return@get "ugh"
         config[param] = value
         "$param=$value"
     }
@@ -98,7 +99,7 @@ fun main(args: Array<String>) {
     }
 
     http.get("/api/queue/add/:trackId") {
-        if (!config[Configs.Vote]!!) return@get "Voting is disabled"
+        if (!config[Configs.Vote]!!.toBoolean()) return@get "Voting is disabled"
         var voteType = VoteTypes.NONE
         if (request.queryParams("voteType")?.toLowerCase() == "downvote") {
             voteType = VoteTypes.DOWNVOTE

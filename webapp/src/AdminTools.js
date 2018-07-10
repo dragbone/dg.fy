@@ -11,7 +11,8 @@ export default class AdminTools extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            admin: false
+            admin: false,
+            muteInfo: {}
         };
     }
 
@@ -48,7 +49,7 @@ export default class AdminTools extends Component {
     }
 
     loadContent(muteInfo) {
-        this.setState({admin: this.state.admin, muteUntil: muteInfo.mutedUntil});
+        this.setState({admin: this.state.admin, muteInfo: muteInfo});
     }
 
     render() {
@@ -71,10 +72,10 @@ export default class AdminTools extends Component {
         }
 
         let muteText = null;
-        if(this.state.muteUntil){
-            muteText = "muted until " + this.state.muteUntil
+        if(this.state.muteInfo.mutedUntil){
+            muteText = "muted until " + this.state.muteInfo.mutedUntil
         }else{
-            muteText = "mute for 5 min"
+            muteText = "mute for " + this.state.muteInfo.muteDurationMinutes + " min"
         }
 
         return <span style={{marginLeft: 30}}>

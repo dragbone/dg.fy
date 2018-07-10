@@ -7,16 +7,19 @@ import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
-class MuteService {
+class MuteService(private val config: MutableMap<Configs, String>) {
     private var muteUntil: Instant? = null
+    private val increaseDurationMinutes: Int
+        get() {
+            return config[Configs.MuteDuration]!!.toInt()
+        }
 
-    val increaseDurationMinutes = 5
     fun increaseMute() {
         val mute = muteUntil ?: Instant.now()
         muteUntil = mute.plus(Duration.ofMinutes(increaseDurationMinutes.toLong()))
     }
 
-    fun getMuteEndDate(): LocalDateTime? = muteUntil?.let { LocalDateTime.ofInstant(it, ZoneId.systemDefault()) }
+    private fun getMuteEndDate(): LocalDateTime? = muteUntil?.let { LocalDateTime.ofInstant(it, ZoneId.systemDefault()) }
 
     fun isMuteExpired(): Boolean {
         return muteUntil?.isBefore(Instant.now()) ?: false
