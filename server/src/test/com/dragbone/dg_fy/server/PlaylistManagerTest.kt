@@ -1,5 +1,6 @@
 package com.dragbone.dg_fy.server
 
+import com.dragbone.dg_fy.server.models.VoteTypes
 import org.junit.Assert
 import org.junit.Test
 

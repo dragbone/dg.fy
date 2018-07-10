@@ -1,14 +1,13 @@
 package com.dragbone.dg_fy.server
 
+import com.dragbone.dg_fy.server.models.*
+import java.time.format.DateTimeFormatter
 import java.util.*
 
-enum class VoteTypes {
-    UPVOTE, DOWNVOTE, NONE
-}
-
 class PlaylistManager(val spotifyClient: ISpotifyClient) {
+    val muteService = MuteService()
     companion object {
-        val fallbackTrackId = "5TQbdFgOgAMwhAzZwVFBHb"
+        const val fallbackTrackId = "5TQbdFgOgAMwhAzZwVFBHb"
         val comparator = kotlin.Comparator<Track> { a, b ->
             val voteDiff = b.numVotes - a.numVotes
             if (voteDiff != 0) voteDiff else (
@@ -18,46 +17,24 @@ class PlaylistManager(val spotifyClient: ISpotifyClient) {
     }
 
     var progress: Int = 0
-
-    open class Track(val trackId: String) {
-        val queueDate = Date()
-        var numVotes: Int = 0
-        var artist: String? = null
-        var song: String? = null
-        var imageUrl: String? = null
-        var lengthS: Int? = null
-        val userVotes = mutableMapOf<String, VoteTypes>()
-    }
-
-    class UserTrack(track: Track, val voteType: VoteTypes) : Track(track.trackId) {
-        init {
-            numVotes = track.numVotes
-            artist = track.artist
-            song = track.song
-            imageUrl = track.imageUrl
-            userVotes.putAll(track.userVotes)
-        }
-    }
-
-    data class PlayingTrack(val track: Track?, val progress: Int)
-    data class Playlist(val tracks: List<UserTrack>, val playing: PlayingTrack)
-
+    private val formatter = DateTimeFormatter.ofPattern("HH:mm")
     fun getPlaylist(user: String): Playlist {
         val list = playlist.values.sortedWith(comparator).map {
-            PlaylistManager.UserTrack(it, it.userVotes.get(user) ?: VoteTypes.NONE)
+            UserTrack(it, it.userVotes[user]
+                    ?: VoteTypes.NONE)
         }
-        return Playlist(list, PlayingTrack(currentlyPlaying, progress))
+        return Playlist(list, PlayingTrack(currentlyPlaying, progress), muteService.getMuteEndDate()?.format(formatter))
     }
 
     private val playlist = mutableMapOf<String, Track>()
 
     fun add(trackId: String, user: String?, voteType: VoteTypes): UserTrack {
         println("add: $trackId, user: $user")
-        if(currentlyPlaying?.trackId == trackId) return UserTrack(currentlyPlaying!!,VoteTypes.NONE);
+        if(currentlyPlaying?.trackId == trackId) return UserTrack(currentlyPlaying!!, VoteTypes.NONE);
         val track = playlist.getOrPut(trackId) { Track(trackId) }
         if (user != null) {
             remove(trackId, user)
-            track.userVotes.put(user, voteType)
+            track.userVotes[user] = voteType
             if (voteType == VoteTypes.UPVOTE) {
                 track.numVotes += 1
             } else if (voteType == VoteTypes.DOWNVOTE) {
@@ -83,7 +60,7 @@ class PlaylistManager(val spotifyClient: ISpotifyClient) {
     }
 
     var currentlyPlaying: Track? = null
-    val playedTracks = mutableListOf<Track>()
+    private val playedTracks = mutableListOf<Track>()
     fun dequeue(): String {
         val highestTrack = playlist.entries.maxBy { it.value.numVotes }?.apply {
             playlist.remove(key)
@@ -100,7 +77,7 @@ class PlaylistManager(val spotifyClient: ISpotifyClient) {
         return nextTrackId
     }
 
-    fun updateTrackData(track: Track) {
+    private fun updateTrackData(track: Track) {
         spotifyClient.loadTrackData(track)
     }
 
@@ -120,7 +97,7 @@ class PlaylistManager(val spotifyClient: ISpotifyClient) {
         return weightedTracks.take(5)
     }
 
-    fun getFallbackTrackId(): String {
+    private fun getFallbackTrackId(): String {
         return fallbackTrackId
     }
 }

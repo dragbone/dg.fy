@@ -1,5 +1,6 @@
 package com.dragbone.dg_fy.server
 
+import com.dragbone.dg_fy.server.models.Track
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import okhttp3.FormBody
@@ -21,7 +22,7 @@ class SpotifyClient(val clientId: String, val clientSecret: String) : ISpotifyCl
     }
 
     val mapper = jacksonObjectMapper()
-    override fun loadTrackData(track: PlaylistManager.Track) {
+    override fun loadTrackData(track: Track) {
         val trackData = request("tracks/${track.trackId}")
         with(track) {
             artist = trackData["artists"].first()["name"].asText()

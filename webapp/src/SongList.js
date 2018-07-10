@@ -20,6 +20,7 @@ export default class SongList extends Component {
             .then(result => {
                 this.setState({ items: result.tracks });
                 window.currentlyPlayingCallback(result.playing);
+                window.adminToolsCallback(result);
             });
     }
 

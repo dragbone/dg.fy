@@ -1,10 +1,12 @@
 package com.dragbone.dg_fy.server
 
 import com.dragbone.dg_fy.lib.AppCommand
+import com.dragbone.dg_fy.server.models.VoteTypes
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import spark.Request
 import spark.kotlin.*
 import java.net.URLEncoder
+import java.time.Duration
 
 fun main(args: Array<String>) {
     if (args.size != 3) {
@@ -43,6 +45,12 @@ fun main(args: Array<String>) {
     http.get("/api/progress/:progressS") {
         val progress = params("progressS").toInt()
         playlistManager.progress = progress
+
+        if (playlistManager.muteService.isMuteExpired()) {
+            playlistManager.muteService.resetMute()
+            commandQueue.add(AppCommand.Play)
+        }
+
         if (commandQueue.any()) {
             commandQueue.removeAt(0)
         } else {
@@ -51,6 +59,10 @@ fun main(args: Array<String>) {
     }
 
     http.get("/api/queue") {
+        if (playlistManager.muteService.isMuteExpired()) {
+            playlistManager.muteService.resetMute()
+            commandQueue.add(AppCommand.Play)
+        }
         playlistManager.getPlaylist(request.ip()).json()
     }
 
@@ -58,7 +70,7 @@ fun main(args: Array<String>) {
         if (!checkPassword(request, adminPassword)) return@get false
         val param = Configs.valueOf(params("param").capitalize())
         val value = params("value").toBoolean()
-        config.put(param, value)
+        config[param] = value
         "$param=$value"
     }
     http.get("/api/skip") {
@@ -72,6 +84,12 @@ fun main(args: Array<String>) {
     http.get("/api/play") {
         if (!checkPassword(request, adminPassword)) return@get false
         commandQueue.add(AppCommand.Play)
+        playlistManager.muteService.resetMute()
+    }
+    http.get("/api/mute") {
+        commandQueue.add(AppCommand.Pause)
+        playlistManager.muteService.increaseMute(Duration.ofMinutes(5))
+        playlistManager.getPlaylist(request.ip()).json()
     }
 
     http.get("/api/queue/next") {
