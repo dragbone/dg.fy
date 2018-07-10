@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import Track from './Track';
-import { List } from 'material-ui/List';
-import LinearProgress from 'material-ui/LinearProgress';
+import List from '@material-ui/core/List';
+import LinearProgress from '@material-ui/core/LinearProgress';
 
 export default class CurrentlyPlaying extends Component {
     constructor() {
@@ -27,7 +27,7 @@ export default class CurrentlyPlaying extends Component {
         return (
             <List>
                 {track}
-                <LinearProgress mode="determinate" value={this.state.progress} />
+                <LinearProgress variant="determinate" color="secondary" value={this.state.progress} />
             </List>
         );
     }

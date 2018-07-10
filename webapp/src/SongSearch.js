@@ -1,15 +1,18 @@
-import React, { Component } from 'react';
-import { List, ListItem } from 'material-ui/List';
-import Avatar from 'material-ui/Avatar';
-import TextField from 'material-ui/TextField';
-import FlatButton from 'material-ui/FlatButton';
+import React, {Component} from 'react';
+import List from '@material-ui/core/List';
+import ListItem from '@material-ui/core/ListItem';
+import ListItemText from '@material-ui/core/ListItemText';
+import ListItemSecondaryAction from "@material-ui/core/ListItemSecondaryAction";
+import Avatar from '@material-ui/core/Avatar';
+import TextField from '@material-ui/core/TextField';
+import Button from '@material-ui/core/Button';
 import AdminTools from './AdminTools';
 
 export default class SongSearch extends Component {
-    state = { searchResult: [], timer: null, searchText: "" };
+    state = {searchResult: [], timer: null, searchText: ""};
 
     inputChanged(event) {
-        this.setState({ searchText: event.target.value });
+        this.setState({searchText: event.target.value});
         if (this.state.searchText === "") {
             this.setState({
                 searchResult: []
@@ -22,7 +25,7 @@ export default class SongSearch extends Component {
             var timer = window.setTimeout(function () {
                 load();
             }, 500);
-            this.setState({ timer: timer });
+            this.setState({timer: timer});
         }
     }
 
@@ -44,22 +47,26 @@ export default class SongSearch extends Component {
     }
 
     clear(event) {
-        this.setState({ searchText: "", searchResult: [] });
+        this.setState({searchText: "", searchResult: []});
     }
 
     render() {
         return (
             <div>
-                <TextField floatingLabelText="Search Track" onChange={this.inputChanged.bind(this)} ref="searchText" value={this.state.searchText} />
-                <FlatButton label="Clear" secondary={true} onClick={this.clear.bind(this)} />
-                <AdminTools />
+                <TextField label="Search Track" onChange={this.inputChanged.bind(this)}
+                           value={this.state.searchText}/>
+                <Button color="secondary" onClick={this.clear.bind(this)}>Clear</Button>
+                <AdminTools/>
                 <List>
                     {this.state.searchResult.slice(0, 10).map((item, index) => <ListItem
+                        button
                         key={index}
-                        primaryText={<span>{item.name}<span style={{ color: '#777777' }}> {item.artists[0].name} <span style={{ color: '#aaaaaa' }}>[{item.album.name}]</span></span></span>}
-                        leftAvatar={<Avatar src={item.album.images[item.album.images.length - 1].url} />}
                         onClick={(event) => this.onListItemSelected.bind(this)(item.id)}
-                    />)}
+                    >
+                        <Avatar src={item.album.images[item.album.images.length - 1].url}/>
+                        <ListItemText primary={<span>{item.name}<span style={{color: '#777777'}}> {item.artists[0].name} <span
+                            style={{color: '#aaaaaa'}}>[{item.album.name}]</span></span></span>} secondary={this.state.artist}/>
+                    </ListItem>)}
                 </List>
             </div>
         );

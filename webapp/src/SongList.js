@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import Track from './Track';
-import { List } from 'material-ui/List';
+import List from '@material-ui/core/List';
 
 export default class SongList extends Component {
     constructor() {
@@ -18,9 +18,9 @@ export default class SongList extends Component {
         fetch(window.apiUrl + 'queue')
             .then(response => response.json())
             .then(result => {
-                this.setState({ items: result.tracks });
-                window.currentlyPlayingCallback(result.playing);
-                window.adminToolsCallback(result);
+                this.setState({ items: result.playlist.tracks });
+                window.currentlyPlayingCallback(result.playlist.playing);
+                window.adminToolsCallback(result.muteInfo);
             });
     }
 

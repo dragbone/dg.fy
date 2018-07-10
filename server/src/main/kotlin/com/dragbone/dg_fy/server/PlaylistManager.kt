@@ -5,7 +5,6 @@ import java.time.format.DateTimeFormatter
 import java.util.*
 
 class PlaylistManager(val spotifyClient: ISpotifyClient) {
-    val muteService = MuteService()
     companion object {
         const val fallbackTrackId = "5TQbdFgOgAMwhAzZwVFBHb"
         val comparator = kotlin.Comparator<Track> { a, b ->
@@ -17,13 +16,12 @@ class PlaylistManager(val spotifyClient: ISpotifyClient) {
     }
 
     var progress: Int = 0
-    private val formatter = DateTimeFormatter.ofPattern("HH:mm")
     fun getPlaylist(user: String): Playlist {
         val list = playlist.values.sortedWith(comparator).map {
             UserTrack(it, it.userVotes[user]
                     ?: VoteTypes.NONE)
         }
-        return Playlist(list, PlayingTrack(currentlyPlaying, progress), muteService.getMuteEndDate()?.format(formatter))
+        return Playlist(list, PlayingTrack(currentlyPlaying, progress))
     }
 
     private val playlist = mutableMapOf<String, Track>()

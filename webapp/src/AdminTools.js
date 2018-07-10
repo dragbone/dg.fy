@@ -43,12 +43,12 @@ export default class AdminTools extends Component {
         fetch(window.apiUrl + 'mute')
             .then(response => response.json())
             .then(result => {
-                this.loadContent(result);
+                this.loadContent(result.muteInfo);
             });
     }
 
-    loadContent(data) {
-        this.setState({admin: this.state.admin, muteUntil: data.muteUntil});
+    loadContent(muteInfo) {
+        this.setState({admin: this.state.admin, muteUntil: muteInfo.mutedUntil});
     }
 
     render() {

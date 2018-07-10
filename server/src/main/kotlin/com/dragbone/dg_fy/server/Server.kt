@@ -1,12 +1,12 @@
 package com.dragbone.dg_fy.server
 
 import com.dragbone.dg_fy.lib.AppCommand
+import com.dragbone.dg_fy.server.models.StateDataSet
 import com.dragbone.dg_fy.server.models.VoteTypes
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import spark.Request
 import spark.kotlin.*
 import java.net.URLEncoder
-import java.time.Duration
 
 fun main(args: Array<String>) {
     if (args.size != 3) {
@@ -16,6 +16,7 @@ fun main(args: Array<String>) {
     val http: Http = ignite()
     val spotifyClient = SpotifyClient(args[0], args[1])
     val playlistManager = PlaylistManager(spotifyClient)
+    val muteService = MuteService()
     val config = mutableMapOf(Configs.Vote to true)
 
     http.port(80)
@@ -46,8 +47,8 @@ fun main(args: Array<String>) {
         val progress = params("progressS").toInt()
         playlistManager.progress = progress
 
-        if (playlistManager.muteService.isMuteExpired()) {
-            playlistManager.muteService.resetMute()
+        if (muteService.isMuteExpired()) {
+            muteService.resetMute()
             commandQueue.add(AppCommand.Play)
         }
 
@@ -59,11 +60,11 @@ fun main(args: Array<String>) {
     }
 
     http.get("/api/queue") {
-        if (playlistManager.muteService.isMuteExpired()) {
-            playlistManager.muteService.resetMute()
+        if (muteService.isMuteExpired()) {
+            muteService.resetMute()
             commandQueue.add(AppCommand.Play)
         }
-        playlistManager.getPlaylist(request.ip()).json()
+        StateDataSet(playlistManager.getPlaylist(request.ip()), muteService.getDataSet()).json()
     }
 
     http.get("/api/config/:param/:value") {
@@ -84,12 +85,12 @@ fun main(args: Array<String>) {
     http.get("/api/play") {
         if (!checkPassword(request, adminPassword)) return@get false
         commandQueue.add(AppCommand.Play)
-        playlistManager.muteService.resetMute()
+        muteService.resetMute()
     }
     http.get("/api/mute") {
         commandQueue.add(AppCommand.Pause)
-        playlistManager.muteService.increaseMute(Duration.ofMinutes(5))
-        playlistManager.getPlaylist(request.ip()).json()
+        muteService.increaseMute()
+        StateDataSet(playlistManager.getPlaylist(request.ip()), muteService.getDataSet()).json()
     }
 
     http.get("/api/queue/next") {

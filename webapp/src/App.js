@@ -1,17 +1,13 @@
-import React, { Component } from 'react';
-import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
-import getMuiTheme from 'material-ui/styles/getMuiTheme';
-import darkBaseTheme from 'material-ui/styles/baseThemes/darkBaseTheme';
-import lightBaseTheme from 'material-ui/styles/baseThemes/lightBaseTheme';
+import React, {Component} from 'react';
+import {MuiThemeProvider, createMuiTheme} from '@material-ui/core/styles';
 import './App.css'
 import SongSearch from './SongSearch';
 import SongList from './SongList';
 import CurrentlyPlaying from './CurrentlyPlaying';
-import { Card, CardHeader, CardText } from 'material-ui/Card';
-import Toggle from 'material-ui/Toggle';
-
-import injectTapEventPlugin from 'react-tap-event-plugin';
-injectTapEventPlugin();
+import Card from '@material-ui/core/Card';
+import CardContent from '@material-ui/core/CardContent';
+import Switch from '@material-ui/core/Switch';
+import Typography from "@material-ui/core/Typography";
 
 window.apiUrl = 'http://' + window.location.hostname + '/api/';
 
@@ -20,7 +16,11 @@ export default class App extends Component {
         super(props);
         this.state = {
             light: true,
-            theme: getMuiTheme(lightBaseTheme)
+            theme: createMuiTheme({
+                palette: {
+                    type: 'light',
+                },
+            })
         };
     }
 
@@ -28,12 +28,20 @@ export default class App extends Component {
         if (isChecked) {
             this.setState({
                 light: false,
-                theme: getMuiTheme(darkBaseTheme)
+                theme: createMuiTheme({
+                    palette: {
+                        type: 'dark',
+                    },
+                })
             });
         } else {
             this.setState({
                 light: true,
-                theme: getMuiTheme(lightBaseTheme)
+                theme: createMuiTheme({
+                    palette: {
+                        type: 'light',
+                    },
+                })
             });
         }
     }
@@ -44,39 +52,29 @@ export default class App extends Component {
 
     render() {
         return (
-            <MuiThemeProvider muiTheme={this.state.theme}>
+            <MuiThemeProvider theme={this.state.theme}>
+                <Card>
+                    <CardContent>
+                        <Typography gutterBottom variant="headline" component="h2">
+                            Playing
+                        </Typography>
+                        <br />
+                        <CurrentlyPlaying/>
+                        <br />
+                        <SongSearch/>
+                    </CardContent>
+                </Card>
+                <br />
+                <Card>
+                    <CardContent>
+                        <Typography gutterBottom variant="headline" component="h2">
+                            Playlist
+                        </Typography>
+                        <SongList/>
+                    </CardContent>
+                </Card>
                 <div>
-                    <Card>
-                        <CardText>
-                            <div>
-                                <Toggle onToggle={(event, isInputChecked) => this.switchTheme.bind(this)(isInputChecked)} />
-                            </div>
-                            <div className="card">
-                                <Card>
-                                    <CardText>
-                                        <SongSearch />
-                                    </CardText>
-                                </Card>
-                            </div>
-                            <div className="card">
-                                <Card>
-                                    <CardHeader title="Playing" />
-                                    <CardText>
-                                        <CurrentlyPlaying />
-                                    </CardText>
-                                </Card>
-                            </div>
-                            <div className="card">
-                                <Card>
-                                    <CardHeader title="Playlist" />
-                                    <CardText>
-                                        <SongList />
-                                    </CardText>
-                                </Card>
-                            </div>
-
-                        </CardText>
-                    </Card>
+                    <Switch onChange={(event) => this.switchTheme.bind(this)(event.target.checked)}/>
                 </div>
             </MuiThemeProvider>
         );
