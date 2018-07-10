@@ -56,7 +56,7 @@ export default class SongSearch extends Component {
                 <TextField label="Search Track" onChange={this.inputChanged.bind(this)}
                            value={this.state.searchText}/>
                 <Button color="secondary" onClick={this.clear.bind(this)}>Clear</Button>
-                <AdminTools/>
+
                 <List>
                     {this.state.searchResult.slice(0, 10).map((item, index) => <ListItem
                         button

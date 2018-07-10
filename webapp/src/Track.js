@@ -4,22 +4,17 @@ import ListItemText from '@material-ui/core/ListItemText';
 import ListItemSecondaryAction from "@material-ui/core/ListItemSecondaryAction";
 import Avatar from '@material-ui/core/Avatar';
 import Badge from '@material-ui/core/Badge';
-import MenuItem from '@material-ui/core/MenuItem';
 import ActionThumbsUpDown from '@material-ui/icons/ThumbsUpDown';
 import ActionThumbUp from '@material-ui/icons/ThumbUp';
 import ActionThumbDown from '@material-ui/icons/ThumbDown';
-import Menu from "@material-ui/core/Menu";
-import ListItemIcon from "@material-ui/core/ListItemIcon";
 import IconButton from "@material-ui/core/IconButton";
+import AdminTools from './AdminTools';
+
 
 export default class Track extends Component {
     constructor(props) {
         super(props);
-        if (props.blockVote) {
-            props.state.blockVote = true;
-        } else {
-            props.state.blockVote = false;
-        }
+        props.state.blockVote = props.blockVote;
         this.state = props.state;
     }
 
@@ -31,18 +26,18 @@ export default class Track extends Component {
             });
     }
 
-    upVote(){
+    upVote() {
+        if(this.state.blockVote) return;
         this.vote("UpVote");
-        this.setState({vote: 1});
     }
 
-    downVote(){
+    downVote() {
+        if(this.state.blockVote) return;
         this.vote("DownVote");
-        this.setState({vote: -1});
     }
 
     removeVote() {
-        this.setState({vote: 0});
+        if(this.state.blockVote) return;
         fetch(window.apiUrl + 'queue/remove/' + this.state.trackId)
             .then(response => response.json())
             .then(result => {
@@ -50,23 +45,44 @@ export default class Track extends Component {
             });
     }
 
+    renderAlbumArt() {
+        if (this.state.blockVote) {
+            return <Avatar src={this.state.imageUrl}/>;
+        } else {
+            return <Badge badgeContent={this.state.numVotes} color="secondary">
+                <Avatar src={this.state.imageUrl}/>;
+            </Badge>
+        }
+    }
+
+    renderVoteMenu() {
+        if (!this.state.blockVote) {
+            return <div>
+                <IconButton onClick={() => this.downVote()}
+                            color={this.state.voteType === "DOWNVOTE" ? "secondary" : "default"}>
+                    <ActionThumbDown/>
+                </IconButton>
+                <IconButton onClick={() => this.removeVote()}
+                            color={this.state.voteType === "NONE" ? "secondary" : "default"}>
+                    <ActionThumbsUpDown/>
+                </IconButton>
+                <IconButton onClick={() => this.upVote()}
+                            color={this.state.voteType === "UPVOTE" ? "secondary" : "default"}>
+                    <ActionThumbUp/>
+                </IconButton>
+            </div>;
+        } else {
+            return <AdminTools/>;
+        }
+    }
+
     render() {
         return (
-            <ListItem onClick={() => this.upVote()} button>
-                <Badge badgeContent={this.state.numVotes} color="secondary">
-                    <Avatar src={this.state.imageUrl}/>
-                </Badge>
+            <ListItem onClick={() => this.upVote()} button={!this.state.blockVote}>
+                {this.renderAlbumArt()}
                 <ListItemText primary={this.state.song} secondary={this.state.artist}/>
                 <ListItemSecondaryAction>
-                    <IconButton onClick={() => this.downVote()} color={this.state.voteType === "DOWNVOTE" ? "secondary" : "default"} >
-                        <ActionThumbDown/>
-                    </IconButton>
-                    <IconButton onClick={() => this.removeVote()} color={this.state.voteType === "NONE" ? "secondary" : "default"}>
-                        <ActionThumbsUpDown/>
-                    </IconButton>
-                    <IconButton onClick={() => this.upVote()} color={this.state.voteType === "UPVOTE" ? "secondary" : "default"}>
-                        <ActionThumbUp/>
-                    </IconButton>
+                    {this.renderVoteMenu()}
                 </ListItemSecondaryAction>
             </ListItem>
         );
