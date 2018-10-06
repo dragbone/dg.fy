@@ -19,7 +19,9 @@ export default class Track extends Component {
     }
 
     vote(voteType) {
-        fetch(window.apiUrl + 'queue/add/' + this.state.trackId + "?voteType=" + voteType)
+        fetch(window.apiUrl + 'queue/' + this.state.trackId + "?voteType=" + voteType,{
+            method: 'POST'
+        })
             .then(response => response.json())
             .then(result => {
                 this.setState(result)
@@ -38,7 +40,9 @@ export default class Track extends Component {
 
     removeVote() {
         if(this.state.blockVote) return;
-        fetch(window.apiUrl + 'queue/remove/' + this.state.trackId)
+        fetch(window.apiUrl + 'queue/' + this.state.trackId,{
+            method: 'DELETE'
+        })
             .then(response => response.json())
             .then(result => {
                 this.setState(result)

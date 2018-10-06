@@ -1,20 +1,21 @@
 package com.dragbone.dg_fy.server
 
 import com.dragbone.dg_fy.lib.AppCommand
+import com.dragbone.dg_fy.server.config.BoolConfigEntry
+import com.dragbone.dg_fy.server.config.Configs
+import com.dragbone.dg_fy.server.config.IntConfigEntry
+import com.dragbone.dg_fy.server.models.Error
 import com.dragbone.dg_fy.server.models.StateDataSet
-import com.dragbone.dg_fy.server.models.VoteTypes
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import spark.Request
+import spark.Response
 import spark.kotlin.*
-import java.lang.Exception
 import java.net.URLEncoder
-import java.util.*
 
 fun main(args: Array<String>) {
     if (args.size != 3) {
         println("Start server with 'java -jar server.jar <clientId> <clientSecret> <password>'")
     }
-    val adminPassword = args[2]
+    val adminFilter = AdminFilter(args[2])
     val http: Http = ignite()
     val spotifyClient = SpotifyClient(args[0], args[1])
     val playlistManager = PlaylistManager(spotifyClient)
@@ -22,16 +23,20 @@ fun main(args: Array<String>) {
             Configs.Vote to BoolConfigEntry(true),
             Configs.MuteDuration to IntConfigEntry(5))
     val muteService = MuteService(config)
+    val commandQueue = mutableListOf<AppCommand>()
 
     http.port(80)
     http.staticFiles.externalLocation("webapp/build")
 
     http.enableCORS("*", "*", "*")
 
-    http.setupConfigRoutes(config, adminPassword)
+    http.setupConfigRoutes(config, adminFilter)
+    http.setupQueueRoutes(playlistManager, config, muteService, commandQueue, adminFilter)
+    http.setupAdminRoutes(playlistManager, muteService, commandQueue, adminFilter)
 
     http.post("/api/login") {
-        checkPassword(request, adminPassword)
+        adminFilter.check(this)
+        "true".json()
     }
 
     http.get("/api/search/:q") {
@@ -41,7 +46,6 @@ fun main(args: Array<String>) {
         spotifyClient.search(search)
     }
 
-    val commandQueue = mutableListOf<AppCommand>()
     http.get("/api/progress/:progressS") {
         val progress = params("progressS").toInt()
         playlistManager.progress = progress
@@ -58,27 +62,6 @@ fun main(args: Array<String>) {
         }
     }
 
-    http.get("/api/queue") {
-        if (muteService.isMuteExpired()) {
-            muteService.resetMute()
-            commandQueue.add(AppCommand.Play)
-        }
-        StateDataSet(playlistManager.getPlaylist(request.ip()), muteService.getDataSet()).json()
-    }
-
-    http.get("/api/skip") {
-        if (!checkPassword(request, adminPassword)) return@get false
-        commandQueue.add(AppCommand.Skip)
-    }
-    http.get("/api/pause") {
-        if (!checkPassword(request, adminPassword)) return@get false
-        commandQueue.add(AppCommand.Pause)
-    }
-    http.get("/api/play") {
-        if (!checkPassword(request, adminPassword)) return@get false
-        commandQueue.add(AppCommand.Play)
-        muteService.resetMute()
-    }
     http.get("/api/mute") {
         muteService.getDataSet().json()
     }
@@ -87,43 +70,15 @@ fun main(args: Array<String>) {
         muteService.increaseMute()
         StateDataSet(playlistManager.getPlaylist(request.ip()), muteService.getDataSet()).json()
     }
-
-    http.get("/api/queue/next") {
-        playlistManager.dequeue()
-    }
-
-    http.get("/api/queue/add/:trackId") {
-        if (!(config[Configs.Vote] as BoolConfigEntry).value) return@get "Voting is disabled"
-        var voteType = VoteTypes.NONE
-        if (request.queryParams("voteType")?.toLowerCase() == "downvote") {
-            voteType = VoteTypes.DOWNVOTE
-        } else if (request.queryParams("voteType")?.toLowerCase() == "upvote") {
-            voteType = VoteTypes.UPVOTE
-        }
-        val track = playlistManager.add(params("trackId"), request.ip(), voteType)
-        track.json()
-    }
-
-    http.get("/api/queue/remove/:trackId") {
-        val track = playlistManager.remove(params("trackId"), request.ip())
-        track?.json() ?: ""
-    }
-}
-
-fun checkPassword(request: Request, adminPassword: String): Boolean {
-    val authHeader = request.headers("Authorization") ?: return false
-    val base64Login = authHeader.removePrefix("Basic").trim()
-    val login = try {
-        String(Base64.getDecoder().decode(base64Login))
-    } catch (e: Exception) {
-        return false
-    }
-    val userPassword = login.substringAfter(":")
-    return adminPassword == userPassword
 }
 
 val mapper = jacksonObjectMapper()
 fun Any.json(): String = mapper.writeValueAsString(this)
+
+fun Response.error(message: String): String {
+    status(400)
+    return Error(message).json()
+}
 
 fun Http.enableCORS(origin: String, methods: String, headers: String) {
     options("/*") {

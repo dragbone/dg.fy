@@ -14,13 +14,11 @@ export default class AdminContainer extends Component {
             method: 'POST',
             headers: LoginHelper.getLoginHeader(),
         })
-            .then(response => response.json())
-            .then(result => {
-                    if (result === true) {
-                        this.setState({admin: true});
-                    }
+            .then(response => {
+                if(response.ok){
+                    this.setState({admin: true});
                 }
-            );
+            });
     }
 
     render() {

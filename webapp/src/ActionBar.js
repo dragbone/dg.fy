@@ -2,6 +2,8 @@ import React, {Component} from 'react';
 import MuteIcon from '@material-ui/icons/VolumeOff';
 import Chip from '@material-ui/core/Chip';
 import Avatar from "@material-ui/core/Avatar";
+import AdminContainer from "./AdminContainer";
+import AdminTools from "./AdminTools";
 
 export default class ActionBar extends Component {
     constructor(props) {
@@ -39,7 +41,7 @@ export default class ActionBar extends Component {
             muteText = "mute for " + this.state.muteInfo.muteDurationMinutes + " min"
         }
 
-        return <span style={{marginLeft: 30}}>
+        return <span>
             <Chip label={muteText} onClick={(event) => this.mute.bind(this)()} avatar={
                 <Avatar> <MuteIcon/> </Avatar>
             }/>

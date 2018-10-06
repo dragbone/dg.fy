@@ -38,7 +38,9 @@ export default class SongSearch extends Component {
     }
 
     onListItemSelected(trackId) {
-        fetch(window.apiUrl + 'queue/add/' + trackId + '?voteType=UpVote')
+        fetch(window.apiUrl + 'queue/' + trackId + '?voteType=UpVote', {
+            method: 'POST'
+        })
             .then(result => {
                 window.songlistCallback();
             });
@@ -62,8 +64,10 @@ export default class SongSearch extends Component {
                         onClick={(event) => this.onListItemSelected.bind(this)(item.id)}
                     >
                         <Avatar src={item.album.images[item.album.images.length - 1].url}/>
-                        <ListItemText primary={<span>{item.name}<span style={{color: '#777777'}}> {item.artists[0].name} <span
-                            style={{color: '#aaaaaa'}}>[{item.album.name}]</span></span></span>} secondary={this.state.artist}/>
+                        <ListItemText
+                            primary={<span>{item.name}<span style={{color: '#777777'}}> {item.artists[0].name} <span
+                                style={{color: '#aaaaaa'}}>[{item.album.name}]</span></span></span>}
+                            secondary={this.state.artist}/>
                     </ListItem>)}
                 </List>
             </div>

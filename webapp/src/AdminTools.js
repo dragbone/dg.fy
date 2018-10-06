@@ -1,29 +1,43 @@
 import React, {Component} from 'react';
 import Button from '@material-ui/core/Button';
-import MuteIcon from '@material-ui/icons/VolumeOff';
-import PlayIcon from '@material-ui/icons/PlayArrow';
-import PauseIcon from '@material-ui/icons/Pause';
-import SkipIcon from '@material-ui/icons/SkipNext';
-import Chip from '@material-ui/core/Chip';
-import Avatar from "@material-ui/core/Avatar";
+import Play from '@material-ui/icons/PlayArrow';
+import Pause from '@material-ui/icons/Pause';
+import Skip from '@material-ui/icons/SkipNext';
+import Report from '@material-ui/icons/Report';
+import DeleteSweep from '@material-ui/icons/DeleteSweep';
+import LoginHelper from "./LoginHelper";
 
 export default class AdminTools extends Component {
-    constructor(props) {
-        super(props);
-    }
-
     skip() {
-        fetch(window.apiUrl + 'skip', {credentials: 'same-origin'});
+        fetch(window.apiUrl + 'skip', {
+            headers: LoginHelper.getLoginHeader()
+        });
     }
 
     play() {
-        fetch(window.apiUrl + 'play', {credentials: 'same-origin'});
+        fetch(window.apiUrl + 'play', {
+            headers: LoginHelper.getLoginHeader()
+        });
     }
 
     pause() {
-        fetch(window.apiUrl + 'pause', {credentials: 'same-origin'});
+        fetch(window.apiUrl + 'pause', {
+            headers: LoginHelper.getLoginHeader()
+        });
     }
 
+    purge() {
+        fetch(window.apiUrl + 'queue', {
+            method: "delete",
+            headers: LoginHelper.getLoginHeader()
+        });
+    }
+
+    report() {
+        fetch(window.apiUrl + 'report', {
+            headers: LoginHelper.getLoginHeader()
+        });
+    }
 
     render() {
         const style = {
@@ -31,14 +45,20 @@ export default class AdminTools extends Component {
         };
 
         return <span style={{marginLeft: 30}}>
-                <Button variant="fab" style={style} mini={true} onClick={(event) => this.play.bind(this)()}>
-                    <PlayIcon/>
+                <Button variant="fab" style={style} mini={true} onClick={() => this.play.bind(this)()}>
+                    <Play/>
                 </Button>
-                <Button variant="fab" style={style} mini={true} onClick={(event) => this.pause.bind(this)()}>
-                    <PauseIcon/>
+                <Button variant="fab" style={style} mini={true} onClick={() => this.pause.bind(this)()}>
+                    <Pause/>
                 </Button>
-                <Button variant="fab" style={style} mini={true} onClick={(event) => this.skip.bind(this)()}>
-                    <SkipIcon/>
+                <Button variant="fab" style={style} mini={true} onClick={() => this.skip.bind(this)()}>
+                    <Skip/>
+                </Button>
+                <Button variant="fab" style={style} mini={true} onClick={() => this.purge.bind(this)()}>
+                    <DeleteSweep/>
+                </Button>
+                <Button variant="fab" style={style} mini={true} onClick={() => this.report.bind(this)()}>
+                    <Report/>
                 </Button>
             </span>
     }

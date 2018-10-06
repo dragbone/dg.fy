@@ -12,6 +12,8 @@ import Config from './Config'
 import Login from "./Login";
 import AdminContainer from "./AdminContainer";
 import CookieHelper from "./CookieHelper";
+import ActionBar from "./ActionBar";
+import AdminTools from "./AdminTools";
 
 window.apiUrl = 'http://' + window.location.hostname + '/api/';
 
@@ -88,6 +90,7 @@ export default class App extends Component {
                             <Typography gutterBottom variant="headline" component="h2">
                                 Admin
                             </Typography>
+                            <AdminTools/>
                             <Config/>
                         </CardContent>
                     </Card>

@@ -8,18 +8,21 @@ import CookieHelper from "./CookieHelper";
 export default class Login extends Component {
     constructor(props) {
         super(props);
-        this.state = {value: ""};
+        this.state = {value: "", error: false};
     }
 
     handleLogin = event => {
         let value = this.state.value;
         fetch(window.apiUrl + 'login', {
-            method: 'POST',
+            method: 'post',
             headers: LoginHelper.makeLoginHeader(value)
         }).then(response => {
             if (response.ok) {
                 CookieHelper.setCookie("password", value, 365);
                 document.location.reload();
+                this.setState({error: false});
+            }else{
+                this.setState({error: true});
             }
         });
     };
@@ -35,6 +38,7 @@ export default class Login extends Component {
             value={this.state.value}
             onChange={this.handleChange}
             type="password"
+            error={this.state.error}
             InputLabelProps={{
                 shrink: true,
             }}

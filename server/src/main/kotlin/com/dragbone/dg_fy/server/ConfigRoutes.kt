@@ -1,8 +1,11 @@
 package com.dragbone.dg_fy.server
 
+import com.dragbone.dg_fy.server.config.Configs
+import com.dragbone.dg_fy.server.config.IConfigEntry
+import com.dragbone.dg_fy.server.models.Error
 import spark.kotlin.Http
 
-fun Http.setupConfigRoutes(config: MutableMap<Configs, IConfigEntry>, adminPassword: String) {
+fun Http.setupConfigRoutes(config: MutableMap<Configs, IConfigEntry>, adminFilter: AdminFilter) {
     get("/api/config") {
         config.map { ConfigEntry(name = it.key.name, type = it.value.getHtmlInputType(), value = it.value.getValue()) }.json()
     }
@@ -15,13 +18,10 @@ fun Http.setupConfigRoutes(config: MutableMap<Configs, IConfigEntry>, adminPassw
     }
 
     post("/api/config/:param/:value") {
-        if (!checkPassword(request, adminPassword)) {
-            response.status(403)
-            return@post ""
-        }
+        adminFilter.check(this)
         val param = params("param")
         val configType = Configs.fromStringOrNull(param)
-                ?: return@post Error("Unknown parameter '$param'").json()
+                ?: return@post response.error("Unknown parameter '$param'")
 
         val value = params("value")
         println("config-change: $param = $value")
@@ -29,5 +29,3 @@ fun Http.setupConfigRoutes(config: MutableMap<Configs, IConfigEntry>, adminPassw
         config.json()
     }
 }
-
-data class Error(val error: String)

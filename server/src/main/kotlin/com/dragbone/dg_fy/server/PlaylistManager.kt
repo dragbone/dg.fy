@@ -1,6 +1,8 @@
 package com.dragbone.dg_fy.server
 
 import com.dragbone.dg_fy.server.models.*
+import java.io.File
+import java.lang.Exception
 import java.time.format.DateTimeFormatter
 import java.util.*
 
@@ -28,7 +30,9 @@ class PlaylistManager(val spotifyClient: ISpotifyClient) {
 
     fun add(trackId: String, user: String?, voteType: VoteTypes): UserTrack {
         println("add: $trackId, user: $user")
-        if(currentlyPlaying?.trackId == trackId) return UserTrack(currentlyPlaying!!, VoteTypes.NONE);
+        val isNewTrack = !playlist.containsKey(trackId)
+        if (blackList.contains(trackId) && isNewTrack) return UserTrack(currentlyPlaying!!, VoteTypes.NONE)
+        if (currentlyPlaying?.trackId == trackId) return UserTrack(currentlyPlaying!!, VoteTypes.NONE)
         val track = playlist.getOrPut(trackId) { Track(trackId) }
         if (user != null) {
             remove(trackId, user)
@@ -97,5 +101,27 @@ class PlaylistManager(val spotifyClient: ISpotifyClient) {
 
     private fun getFallbackTrackId(): String {
         return fallbackTrackId
+    }
+
+    fun purge() {
+        playedTracks.clear()
+        playlist.clear()
+        blackList.clear()
+    }
+
+    private val blackList: MutableSet<String> = mutableSetOf()
+    fun blacklist(trackId: String) {
+        playlist.remove(trackId)
+        blackList.add(trackId)
+    }
+
+    private val badUserList: MutableMap<String, Int> = mutableMapOf()
+    fun addBadUser(user: String) {
+        badUserList[user] = badUserList.getOrElse(user) { 0 } + 1
+        try {
+            File("badUsers.json").writeText(badUserList.json())
+        } catch (e: Exception) {
+            println("Could not write bad users to file: " + badUserList.json())
+        }
     }
 }
