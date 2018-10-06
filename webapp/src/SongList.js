@@ -20,7 +20,7 @@ export default class SongList extends Component {
             .then(result => {
                 this.setState({ items: result.playlist.tracks });
                 window.currentlyPlayingCallback(result.playlist.playing);
-                window.adminToolsCallback(result.muteInfo);
+                if(window.adminToolsCallback) window.adminToolsCallback(result.muteInfo);
             });
     }
 

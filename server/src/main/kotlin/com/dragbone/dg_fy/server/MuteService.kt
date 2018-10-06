@@ -7,11 +7,11 @@ import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
-class MuteService(private val config: MutableMap<Configs, String>) {
+class MuteService(private val config: MutableMap<Configs, IConfigEntry>) {
     private var muteUntil: Instant? = null
     private val increaseDurationMinutes: Int
         get() {
-            return config[Configs.MuteDuration]!!.toInt()
+            return (config[Configs.MuteDuration] as IntConfigEntry).value
         }
 
     fun increaseMute() {

@@ -6,7 +6,9 @@ import com.dragbone.dg_fy.server.models.VoteTypes
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import spark.Request
 import spark.kotlin.*
+import java.lang.Exception
 import java.net.URLEncoder
+import java.util.*
 
 fun main(args: Array<String>) {
     if (args.size != 3) {
@@ -16,7 +18,9 @@ fun main(args: Array<String>) {
     val http: Http = ignite()
     val spotifyClient = SpotifyClient(args[0], args[1])
     val playlistManager = PlaylistManager(spotifyClient)
-    val config = mutableMapOf(Configs.Vote to "true", Configs.MuteDuration to "5")
+    val config = mutableMapOf(
+            Configs.Vote to BoolConfigEntry(true),
+            Configs.MuteDuration to IntConfigEntry(5))
     val muteService = MuteService(config)
 
     http.port(80)
@@ -24,14 +28,9 @@ fun main(args: Array<String>) {
 
     http.enableCORS("*", "*", "*")
 
-    http.get("/api/login") {
-        val password = request.queryParams("password")
-        println("Login: $password")
-        response.cookie("password", password, 60 * 60 * 24 * 30 * 6, false, false)
-        password == adminPassword
-    }
+    http.setupConfigRoutes(config, adminPassword)
 
-    http.get("/api/isLoggedIn") {
+    http.post("/api/login") {
         checkPassword(request, adminPassword)
     }
 
@@ -67,14 +66,6 @@ fun main(args: Array<String>) {
         StateDataSet(playlistManager.getPlaylist(request.ip()), muteService.getDataSet()).json()
     }
 
-    http.get("/api/config/:param/:value") {
-        if (!checkPassword(request, adminPassword)) return@get false
-        val param = Configs.valueOf(params("param").capitalize())
-        val value = params("value")
-        if(value == "favicon.png") return@get "ugh"
-        config[param] = value
-        "$param=$value"
-    }
     http.get("/api/skip") {
         if (!checkPassword(request, adminPassword)) return@get false
         commandQueue.add(AppCommand.Skip)
@@ -89,6 +80,9 @@ fun main(args: Array<String>) {
         muteService.resetMute()
     }
     http.get("/api/mute") {
+        muteService.getDataSet().json()
+    }
+    http.post("/api/mute") {
         commandQueue.add(AppCommand.Pause)
         muteService.increaseMute()
         StateDataSet(playlistManager.getPlaylist(request.ip()), muteService.getDataSet()).json()
@@ -99,7 +93,7 @@ fun main(args: Array<String>) {
     }
 
     http.get("/api/queue/add/:trackId") {
-        if (!config[Configs.Vote]!!.toBoolean()) return@get "Voting is disabled"
+        if (!(config[Configs.Vote] as BoolConfigEntry).value) return@get "Voting is disabled"
         var voteType = VoteTypes.NONE
         if (request.queryParams("voteType")?.toLowerCase() == "downvote") {
             voteType = VoteTypes.DOWNVOTE
@@ -117,7 +111,14 @@ fun main(args: Array<String>) {
 }
 
 fun checkPassword(request: Request, adminPassword: String): Boolean {
-    val userPassword = request.cookie("password")
+    val authHeader = request.headers("Authorization") ?: return false
+    val base64Login = authHeader.removePrefix("Basic").trim()
+    val login = try {
+        String(Base64.getDecoder().decode(base64Login))
+    } catch (e: Exception) {
+        return false
+    }
+    val userPassword = login.substringAfter(":")
     return adminPassword == userPassword
 }
 

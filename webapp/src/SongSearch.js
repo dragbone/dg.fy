@@ -2,11 +2,9 @@ import React, {Component} from 'react';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemText from '@material-ui/core/ListItemText';
-import ListItemSecondaryAction from "@material-ui/core/ListItemSecondaryAction";
 import Avatar from '@material-ui/core/Avatar';
 import TextField from '@material-ui/core/TextField';
 import Button from '@material-ui/core/Button';
-import AdminTools from './AdminTools';
 
 export default class SongSearch extends Component {
     state = {searchResult: [], timer: null, searchText: ""};

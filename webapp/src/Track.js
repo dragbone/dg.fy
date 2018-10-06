@@ -8,7 +8,7 @@ import ActionThumbsUpDown from '@material-ui/icons/ThumbsUpDown';
 import ActionThumbUp from '@material-ui/icons/ThumbUp';
 import ActionThumbDown from '@material-ui/icons/ThumbDown';
 import IconButton from "@material-ui/core/IconButton";
-import AdminTools from './AdminTools';
+import ActionBar from './ActionBar';
 
 
 export default class Track extends Component {
@@ -72,7 +72,7 @@ export default class Track extends Component {
                 </IconButton>
             </div>;
         } else {
-            return <AdminTools/>;
+            return <ActionBar/>;
         }
     }
 
