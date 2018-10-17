@@ -30,7 +30,11 @@ export default class Track extends Component {
 
     upVote() {
         if(this.state.blockVote) return;
-        this.vote("UpVote");
+        if(this.state.voteType === "UPVOTE"){
+            this.removeVote();
+        }else{
+            this.vote("UpVote");
+        }
     }
 
     downVote() {
@@ -62,14 +66,6 @@ export default class Track extends Component {
     renderVoteMenu() {
         if (!this.state.blockVote) {
             return <div>
-                <IconButton onClick={() => this.downVote()}
-                            color={this.state.voteType === "DOWNVOTE" ? "secondary" : "default"}>
-                    <ActionThumbDown/>
-                </IconButton>
-                <IconButton onClick={() => this.removeVote()}
-                            color={this.state.voteType === "NONE" ? "secondary" : "default"}>
-                    <ActionThumbsUpDown/>
-                </IconButton>
                 <IconButton onClick={() => this.upVote()}
                             color={this.state.voteType === "UPVOTE" ? "secondary" : "default"}>
                     <ActionThumbUp/>

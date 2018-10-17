@@ -1,6 +1,8 @@
 package com.dragbone.dg_fy.server
 
 import com.dragbone.dg_fy.server.models.*
+import com.dragbone.dg_fy.server.songchoosers.LikelihoodSongChooser
+import com.dragbone.dg_fy.server.songchoosers.SongChooser
 import java.io.File
 import java.lang.Exception
 import java.time.format.DateTimeFormatter
@@ -63,19 +65,19 @@ class PlaylistManager(val spotifyClient: ISpotifyClient) {
 
     var currentlyPlaying: Track? = null
     private val playedTracks = mutableListOf<Track>()
+    private val songChooser: SongChooser = LikelihoodSongChooser()
     fun dequeue(): String {
-        val highestTrack = playlist.entries.maxBy { it.value.numVotes }?.apply {
-            playlist.remove(key)
-            playedTracks.add(value)
-        }
+        val nextTrackId = songChooser.selectSong(playlist.values) ?: return getFallbackTrackId()
+        val nextTrack = playlist[nextTrackId] ?: return getFallbackTrackId()
+        playedTracks.add(nextTrack)
+        playlist.remove(nextTrackId)
 
         if (playlist.count { it.value.numVotes >= 0 } < 3) {
             refillPlaylist()
         }
 
-        currentlyPlaying = highestTrack?.value
-        val nextTrackId = highestTrack?.key ?: getFallbackTrackId()
-        println("dequeue: $nextTrackId")
+        currentlyPlaying = nextTrack
+        println("playing: $nextTrackId")
         return nextTrackId
     }
 
