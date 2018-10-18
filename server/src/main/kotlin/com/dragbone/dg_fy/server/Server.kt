@@ -6,6 +6,7 @@ import com.dragbone.dg_fy.server.config.Configs
 import com.dragbone.dg_fy.server.config.IntConfigEntry
 import com.dragbone.dg_fy.server.models.Error
 import com.dragbone.dg_fy.server.models.StateDataSet
+import com.dragbone.dg_fy.server.user.UserMapper
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import spark.Response
 import spark.kotlin.*
@@ -24,6 +25,7 @@ fun main(args: Array<String>) {
             Configs.MuteDuration to IntConfigEntry(5))
     val muteService = MuteService(config)
     val commandQueue = mutableListOf<AppCommand>()
+    val userMapper = UserMapper()
 
     http.port(80)
     http.staticFiles.externalLocation("webapp/build")
@@ -31,7 +33,7 @@ fun main(args: Array<String>) {
     http.enableCORS("*", "*", "*")
 
     http.setupConfigRoutes(config, adminFilter)
-    http.setupQueueRoutes(playlistManager, config, muteService, commandQueue, adminFilter)
+    http.setupQueueRoutes(playlistManager, config, muteService, commandQueue, adminFilter, userMapper)
     http.setupAdminRoutes(playlistManager, muteService, commandQueue, adminFilter)
 
     http.post("/api/login") {

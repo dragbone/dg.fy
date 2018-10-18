@@ -20,7 +20,7 @@ class PlaylistManager(val spotifyClient: ISpotifyClient) {
     }
 
     var progress: Int = 0
-    fun getPlaylist(user: String): Playlist {
+    fun getPlaylist(user: String?): Playlist {
         val list = playlist.values.sortedWith(comparator).map {
             UserTrack(it, it.userVotes[user]
                     ?: VoteTypes.NONE)

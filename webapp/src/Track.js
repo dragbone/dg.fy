@@ -9,6 +9,7 @@ import ActionThumbUp from '@material-ui/icons/ThumbUp';
 import ActionThumbDown from '@material-ui/icons/ThumbDown';
 import IconButton from "@material-ui/core/IconButton";
 import ActionBar from './ActionBar';
+import Tooltip from "@material-ui/core/Tooltip/Tooltip";
 
 
 export default class Track extends Component {
@@ -19,7 +20,7 @@ export default class Track extends Component {
     }
 
     vote(voteType) {
-        fetch(window.apiUrl + 'queue/' + this.state.trackId + "?voteType=" + voteType,{
+        fetch(window.apiUrl + 'queue/' + this.state.trackId + "?voteType=" + voteType, {
             method: 'POST'
         })
             .then(response => response.json())
@@ -29,22 +30,22 @@ export default class Track extends Component {
     }
 
     upVote() {
-        if(this.state.blockVote) return;
-        if(this.state.voteType === "UPVOTE"){
+        if (this.state.blockVote) return;
+        if (this.state.voteType === "UPVOTE") {
             this.removeVote();
-        }else{
+        } else {
             this.vote("UpVote");
         }
     }
 
     downVote() {
-        if(this.state.blockVote) return;
+        if (this.state.blockVote) return;
         this.vote("DownVote");
     }
 
     removeVote() {
-        if(this.state.blockVote) return;
-        fetch(window.apiUrl + 'queue/' + this.state.trackId,{
+        if (this.state.blockVote) return;
+        fetch(window.apiUrl + 'queue/' + this.state.trackId, {
             method: 'DELETE'
         })
             .then(response => response.json())
@@ -76,13 +77,21 @@ export default class Track extends Component {
         }
     }
 
+    renderVoters() {
+        let text = "";
+        for (let user in this.state.userVotes) {
+            text += user + ", ";
+        }
+        return text.substr(0, text.length-2);
+    }
+
     render() {
         return (
             <ListItem onClick={() => this.upVote()} button={!this.state.blockVote}>
                 {this.renderAlbumArt()}
                 <ListItemText primary={this.state.song} secondary={this.state.artist}/>
                 <ListItemSecondaryAction>
-                    {this.renderVoteMenu()}
+                    <Tooltip title={this.renderVoters()} placement="left">{this.renderVoteMenu()}</Tooltip>
                 </ListItemSecondaryAction>
             </ListItem>
         );

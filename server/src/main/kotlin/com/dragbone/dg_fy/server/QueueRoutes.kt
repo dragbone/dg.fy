@@ -7,13 +7,15 @@ import com.dragbone.dg_fy.server.config.IConfigEntry
 import com.dragbone.dg_fy.server.models.Error
 import com.dragbone.dg_fy.server.models.StateDataSet
 import com.dragbone.dg_fy.server.models.VoteTypes
+import com.dragbone.dg_fy.server.user.UserMapper
 import spark.kotlin.Http
 
 fun Http.setupQueueRoutes(playlistManager: PlaylistManager,
                           config: MutableMap<Configs, IConfigEntry>,
                           muteService: MuteService,
                           commandQueue: MutableList<AppCommand>,
-                          adminFilter: AdminFilter) {
+                          adminFilter: AdminFilter,
+                          userMapper: UserMapper) {
     get("/api/queue/next") {
         playlistManager.dequeue()
     }
@@ -26,12 +28,14 @@ fun Http.setupQueueRoutes(playlistManager: PlaylistManager,
         } else if (request.queryParams("voteType")?.toLowerCase() == "upvote") {
             voteType = VoteTypes.UPVOTE
         }
-        val track = playlistManager.add(params("trackId"), request.ip(), voteType)
+        val user = userMapper.getUser(request.ip()) ?: return@post Error("Anonymous voting is not allowed").json()
+        val track = playlistManager.add(params("trackId"), user, voteType)
         track.json()
     }
 
     delete("/api/queue/:trackId") {
-        val track = playlistManager.remove(params("trackId"), request.ip())
+        val user = userMapper.getUser(request.ip()) ?: return@delete Error("Anonymous voting is not allowed").json()
+        val track = playlistManager.remove(params("trackId"), user)
         track?.json() ?: ""
     }
 
@@ -40,6 +44,7 @@ fun Http.setupQueueRoutes(playlistManager: PlaylistManager,
             muteService.resetMute()
             commandQueue.add(AppCommand.Play)
         }
-        StateDataSet(playlistManager.getPlaylist(request.ip()), muteService.getDataSet()).json()
+        val user = userMapper.getUser(request.ip())
+        StateDataSet(playlistManager.getPlaylist(user), muteService.getDataSet()).json()
     }
 }
