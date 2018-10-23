@@ -4,11 +4,8 @@ import ListItemText from '@material-ui/core/ListItemText';
 import ListItemSecondaryAction from "@material-ui/core/ListItemSecondaryAction";
 import Avatar from '@material-ui/core/Avatar';
 import Badge from '@material-ui/core/Badge';
-import ActionThumbsUpDown from '@material-ui/icons/ThumbsUpDown';
 import ActionThumbUp from '@material-ui/icons/ThumbUp';
-import ActionThumbDown from '@material-ui/icons/ThumbDown';
 import IconButton from "@material-ui/core/IconButton";
-import ActionBar from './ActionBar';
 import Tooltip from "@material-ui/core/Tooltip/Tooltip";
 
 
@@ -73,7 +70,7 @@ export default class Track extends Component {
                 </IconButton>
             </div>;
         } else {
-            return <ActionBar/>;
+            return <span/>;
         }
     }
 

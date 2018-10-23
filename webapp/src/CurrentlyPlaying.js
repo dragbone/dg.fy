@@ -1,33 +1,42 @@
 import React, {Component} from 'react';
-import Track from './Track';
 import List from '@material-ui/core/List';
 import LinearProgress from '@material-ui/core/LinearProgress';
 import ListItemText from "@material-ui/core/ListItemText/ListItemText";
 import ListItemSecondaryAction from "@material-ui/core/ListItemSecondaryAction/ListItemSecondaryAction";
 import ListItem from "@material-ui/core/ListItem/ListItem";
-import ActionBar from "./ActionBar";
+import MuteChip from "./MuteChip";
+import Avatar from "@material-ui/core/Avatar/Avatar";
 
 export default class CurrentlyPlaying extends Component {
-    constructor() {
-        super();
-        this.state = {track: null, progress: 0};
+    constructor(props) {
+        super(props);
+        this.state = {
+            track: null,
+            progress: 0,
+            muteInfo: null
+        };
     }
 
-    componentDidMount() {
-        window.currentlyPlayingCallback = this.loadContent.bind(this);
-    }
-
-    loadContent(playing) {
-        if (playing.track) {
-            this.setState({track: playing.track, progress: playing.progress / playing.track.lengthS * 100});
+    componentWillReceiveProps(nextProps, nextContent) {
+        if (nextProps.playing.track != null) {
+            this.setState({
+                track: nextProps.playing.track,
+                progress: nextProps.playing.progress / nextProps.playing.track.lengthS * 100,
+                muteInfo: nextProps.muteInfo
+            });
         }
     }
 
     render() {
-        var track = null;
+        let track = null;
         if (this.state.track != null) {
-            track = <Track key={this.state.track.trackId + this.state.track.artist} state={this.state.track}
-                           blockVote={true}/>;
+            track = <ListItem>
+                <Avatar src={this.state.track.imageUrl}/>
+                <ListItemText primary={this.state.track.song} secondary={this.state.track.artist}/>
+                <ListItemSecondaryAction>
+                    <MuteChip muteInfo={this.state.muteInfo}/>
+                </ListItemSecondaryAction>
+            </ListItem>
         }
         return (
             <List>

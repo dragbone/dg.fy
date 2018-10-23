@@ -12,7 +12,6 @@ import Config from './Config'
 import Login from "./Login";
 import AdminContainer from "./AdminContainer";
 import CookieHelper from "./CookieHelper";
-import ActionBar from "./ActionBar";
 import AdminTools from "./AdminTools";
 
 window.apiUrl = 'http://' + window.location.hostname + '/api/';
@@ -22,7 +21,8 @@ export default class App extends Component {
         super(props);
         this.state = {
             darkTheme: CookieHelper.getCookie("darkTheme"),
-            showConfig: false
+            showConfig: false,
+            playlist: { tracks: [], playing: {} }
         };
     }
 
@@ -54,6 +54,17 @@ export default class App extends Component {
 
     componentDidMount() {
         document.body.style.backgroundColor = '#777777';
+        this.loadContent();
+        window.songlistCallback = this.loadContent.bind(this);
+        setInterval(this.loadContent.bind(this), 2000);
+    }
+
+    loadContent() {
+        fetch(window.apiUrl + 'queue')
+            .then(response => response.json())
+            .then(result => {
+                this.setState(result);
+            });
     }
 
     render() {
@@ -69,7 +80,7 @@ export default class App extends Component {
                             </span>
                         </Typography>
                         <br/>
-                        <CurrentlyPlaying/>
+                        <CurrentlyPlaying playing={this.state.playlist.playing} muteInfo={this.state.muteInfo}/>
                         <br/>
                         <SongSearch/>
                     </CardContent>
@@ -80,7 +91,7 @@ export default class App extends Component {
                         <Typography gutterBottom variant="headline" component="h2">
                             Playlist
                         </Typography>
-                        <SongList/>
+                        <SongList tracks={this.state.playlist.tracks}/>
                     </CardContent>
                 </Card>
                 <AdminContainer>

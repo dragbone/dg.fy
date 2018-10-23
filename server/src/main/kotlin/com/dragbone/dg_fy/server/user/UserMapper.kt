@@ -10,6 +10,6 @@ class UserMapper {
 
         val newUser = userIdentifier.getUser(ip)
         if (newUser != null) userMap[ip] = newUser
-        return "unknown"
+        return newUser ?: ip
     }
 }

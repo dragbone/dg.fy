@@ -2,23 +2,28 @@ import React, {Component} from 'react';
 import MuteIcon from '@material-ui/icons/VolumeOff';
 import Chip from '@material-ui/core/Chip';
 import Avatar from "@material-ui/core/Avatar";
-import AdminContainer from "./AdminContainer";
-import AdminTools from "./AdminTools";
+import Tooltip from "@material-ui/core/Tooltip/Tooltip";
 
-export default class ActionBar extends Component {
+export default class MuteChip extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            muteInfo: {}
+            mutedUntil: "",
+            muteUser: "",
+            muteDurationMinutes: 0
         };
     }
 
-    componentDidMount(){
+    componentDidMount() {
         fetch(window.apiUrl + 'mute')
             .then(response => response.json())
             .then(result => {
                 this.loadContent(result);
             });
+    }
+
+    componentWillReceiveProps(nextProps, nextContent) {
+        this.loadContent(nextProps.muteInfo)
     }
 
     mute() {
@@ -30,21 +35,23 @@ export default class ActionBar extends Component {
     }
 
     loadContent(muteInfo) {
-        this.setState({muteInfo: muteInfo});
+        this.setState(muteInfo);
     }
 
     render() {
         let muteText = null;
-        if(this.state.muteInfo.mutedUntil){
-            muteText = "muted until " + this.state.muteInfo.mutedUntil
-        }else{
-            muteText = "mute for " + this.state.muteInfo.muteDurationMinutes + " min"
+        if (this.state.mutedUntil) {
+            muteText = "muted until " + this.state.mutedUntil
+        } else {
+            muteText = "mute for " + this.state.muteDurationMinutes + " min"
         }
 
         return <span>
-            <Chip label={muteText} onClick={(event) => this.mute.bind(this)()} avatar={
-                <Avatar> <MuteIcon/> </Avatar>
-            }/>
+            <Tooltip title={this.state.muteUser} placement="left">
+                <Chip label={muteText} onClick={(event) => this.mute.bind(this)()} avatar={
+                    <Avatar> <MuteIcon/> </Avatar>
+                }/>
+            </Tooltip>
             </span>
     }
 }

@@ -69,7 +69,8 @@ fun main(args: Array<String>) {
     }
     http.post("/api/mute") {
         commandQueue.add(AppCommand.Pause)
-        muteService.increaseMute()
+        val user = userMapper.getUser(request.ip()) ?: return@post Error("Anonymous muting is not allowed").json()
+        muteService.increaseMute(user)
         StateDataSet(playlistManager.getPlaylist(request.ip()), muteService.getDataSet()).json()
     }
 }

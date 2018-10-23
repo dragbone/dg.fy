@@ -4,7 +4,6 @@ import Button from "@material-ui/core/Button/Button";
 import LoginHelper from "./LoginHelper";
 import CookieHelper from "./CookieHelper";
 
-
 export default class Login extends Component {
     constructor(props) {
         super(props);

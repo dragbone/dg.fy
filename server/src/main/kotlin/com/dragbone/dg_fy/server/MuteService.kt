@@ -16,8 +16,10 @@ class MuteService(private val config: MutableMap<Configs, IConfigEntry>) {
         get() {
             return (config[Configs.MuteDuration] as IntConfigEntry).value
         }
+    private var muteUser: String? = null
 
-    fun increaseMute() {
+    fun increaseMute(user: String) {
+        muteUser = user
         val mute = muteUntil ?: Instant.now()
         muteUntil = mute.plus(Duration.ofMinutes(increaseDurationMinutes.toLong()))
     }
@@ -30,10 +32,15 @@ class MuteService(private val config: MutableMap<Configs, IConfigEntry>) {
 
     fun resetMute() {
         muteUntil = null
+        muteUser = null
     }
 
     private val formatter = DateTimeFormatter.ofPattern("HH:mm")
     fun getDataSet(): MuteInfo {
-        return MuteInfo(getMuteEndDate()?.format(formatter), increaseDurationMinutes)
+        return MuteInfo(
+                mutedUntil = getMuteEndDate()?.format(formatter) ?: "",
+                muteDurationMinutes = increaseDurationMinutes,
+                muteUser = muteUser ?: ""
+        )
     }
 }
