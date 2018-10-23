@@ -41,9 +41,9 @@ export default class MuteChip extends Component {
     render() {
         let muteText = null;
         if (this.state.mutedUntil) {
-            muteText = "muted until " + this.state.mutedUntil
+            muteText = "paused until " + this.state.mutedUntil
         } else {
-            muteText = "mute for " + this.state.muteDurationMinutes + " min"
+            muteText = "pause for " + this.state.muteDurationMinutes + " min"
         }
 
         return <span>
