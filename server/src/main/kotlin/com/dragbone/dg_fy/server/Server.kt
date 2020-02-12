@@ -27,7 +27,7 @@ fun main(args: Array<String>) {
     val commandQueue = mutableListOf<AppCommand>()
     val userMapper = UserMapper()
 
-    http.port(80)
+    http.port(5080)
     http.staticFiles.externalLocation("webapp/build")
 
     http.enableCORS("*", "*", "*")
