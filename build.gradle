@@ -9,7 +9,6 @@ buildscript {
         }
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:2.3.3'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
         classpath "com.moowork.gradle:gradle-node-plugin:1.2.0"
         // NOTE: Do not place your application dependencies here; they belong
@@ -46,6 +45,11 @@ task deployWebapp(type: Copy, dependsOn: 'buildWebapp') {
     into 'deploy/webapp/build'
 }
 
+task deployWebplayer(type: Copy) {
+    from 'webplayer'
+    into 'deploy/webapp/build/webplayer'
+}
+
 task deployRunners(type: Copy) {
     from 'run_server.bat'
     into 'deploy'
@@ -55,13 +59,13 @@ task cleanDeploy(type: Delete){
     delete "deploy"
 }
 
-task deploy(type: Zip, dependsOn: ['cleanDeploy','deployServer', 'deployWebapp', 'deployRunners']) {
+task deploy(type: Zip, dependsOn: ['cleanDeploy','deployServer', 'deployWebapp', 'deployWebplayer', 'deployRunners']) {
     from 'deploy'
-    archiveName = "festerify_" + getDate() + ".zip"
+    archiveName = "dg.fy." + getDate() + ".zip"
 }
 
 def getDate() {
     def date = new Date()
-    def formattedDate = date.format('yyyy-MM-dd')
+    def formattedDate = date.format('yyyy-MM-dd-HH-mm')
     return formattedDate
 }

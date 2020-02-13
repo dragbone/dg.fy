@@ -84,7 +84,7 @@ fun Response.error(message: String): String {
 }
 
 fun Http.enableCORS(origin: String, methods: String, headers: String) {
-    options("/*") {
+    options("/api/*") {
         val accessControlRequestHeaders = request.headers("Access-Control-Request-Headers")
         if (accessControlRequestHeaders != null) {
             response.header("Access-Control-Allow-Headers", accessControlRequestHeaders)

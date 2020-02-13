@@ -14,7 +14,7 @@ import AdminContainer from "./AdminContainer";
 import CookieHelper from "./CookieHelper";
 import AdminTools from "./AdminTools";
 
-window.apiUrl = 'http://' + window.location.hostname + '/api/';
+window.apiUrl = 'http://' + window.location.host + '/api/';
 
 export default class App extends Component {
     constructor(props) {

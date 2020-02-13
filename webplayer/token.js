@@ -1,4 +1,4 @@
-const redirect_uri = "http://localhost:9999/";
+const redirect_uri = window.location.host;
 
 function login() {
     console.log("Redirecting to login...");
