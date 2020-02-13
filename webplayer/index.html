@@ -1,16 +1,17 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Spotify Web Playback SDK Quick Start Tutorial</title>
+    <title>dg.fy</title>
+    <meta charset="UTF-8">
 </head>
 <body>
-<h1>Spotify Web Playback SDK Quick Start Tutorial</h1>
-<h2>Open your console log: <code>View > Developer > JavaScript Console</code></h2>
+<h1>dg.fy</h1>
 
+<script src="secrets.js"></script>
+<script src="token.js"></script>
 <script src="https://sdk.scdn.co/spotify-player.js"></script>
 <script type="text/javascript">
-    window.onSpotifyWebPlaybackSDKReady = () => {
-        const token = 'insert-token-here';
+    window.initPlayer = (token) => {
         const player = new Spotify.Player({
             name: 'Web Playback SDK Quick Start Player',
             getOAuthToken: cb => {
@@ -32,18 +33,37 @@
             console.error(message);
         });
 
+        const playTrack = spotify_uri => {
+            let id = player._options.id;
+            player._options.getOAuthToken(access_token => {
+                fetch(`https://api.spotify.com/v1/me/player/play?device_id=${id}`, {
+                    method: 'PUT',
+                    body: JSON.stringify({uris: [spotify_uri]}),
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${access_token}`
+                    },
+                });
+            });
+        };
+
+        const playNextTrack = () => {
+            fetch(`http://localhost:5080/api/queue/next`)
+                .then(response => response.text())
+                .then(trackId => {
+                    console.log("Playing next: " + trackId);
+                    playTrack("spotify:track:" + trackId)
+                });
+        };
+        window.playNextTrack = playNextTrack;
+
         // Playback status updates
         let lastTrackId = null;
         player.addListener('player_state_changed', state => {
             console.log(state);
             if (state.position === 0 && state.paused === true && lastTrackId !== state.track_window.current_track.id) {
                 lastTrackId = state.track_window.current_track.id;
-                fetch(`http://localhost:5080/api/queue/next`)
-                    .then(response => response.text())
-                    .then(trackId => {
-                        console.log("Playing next: " + trackId);
-                        window.playMusic("spotify:track:" + trackId)
-                    });
+                playNextTrack();
             }
         });
 
@@ -61,27 +81,22 @@
         player.connect();
 
         console.log(player);
-        window.playMusic = function (spotify_uri) {
-            let id = player._options.id;
-            player._options.getOAuthToken(access_token => {
-                fetch(`https://api.spotify.com/v1/me/player/play?device_id=${id}`, {
-                    method: 'PUT',
-                    body: JSON.stringify({uris: [spotify_uri]}),
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${access_token}`
-                    },
-                });
-            });
-        };
 
         window.setInterval(function () {
-            player.getCurrentState().then(state =>{
-                fetch(`http://localhost:5080/api/progress/${Math.floor(state.position / 1000)}`)
+            player.getCurrentState().then(state => {
+                if (state) {
+                    fetch(`http://localhost:5080/api/progress/${Math.floor(state.position / 1000)}`)
+                }
             });
         }, 1000);
     };
+
+    window.onSpotifyWebPlaybackSDKReady = () => {
+        callback();
+    };
 </script>
-<a href="#" onclick="window.playMusic('spotify:track:1cSXzDZt8vzuUp2XREQEJN')">Play Music Bitch!</a>
+<a href="#" onclick="window.playNextTrack()">Play Music Bitch!</a>
+<br/>
+<a href="#" onclick="clearTokens()">Clear</a>
 </body>
 </html>
