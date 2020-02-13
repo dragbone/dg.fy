@@ -11,6 +11,8 @@ class LikelihoodSongChooser : SongChooser {
         val totalVotes = possibleSongs.sumBy { it.numVotes }
         val totalVoteChoices = totalVotes + possibleSongs.size
 
+        if (possibleSongs.none()) return null
+
         var value = random.nextInt(totalVoteChoices)
         possibleSongs.forEach {
             value -= it.numVotes + 1
